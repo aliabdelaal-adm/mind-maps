@@ -42,7 +42,53 @@ function initCanvas() {
     canvas.addEventListener('mousemove', handleCanvasMouseMove);
     canvas.addEventListener('mousedown', handleCanvasMouseDown);
     canvas.addEventListener('mouseup', handleCanvasMouseUp);
+    canvas.addEventListener('mouseleave', handleCanvasMouseUp);
     canvas.addEventListener('wheel', handleCanvasWheel);
+    
+    // Touch support for mobile
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+    canvas.addEventListener('touchend', handleTouchEnd);
+    
+    // Setup control buttons
+    setupControls();
+}
+
+// Setup Control Buttons
+function setupControls() {
+    document.getElementById('zoomInBtn')?.addEventListener('click', () => {
+        scale *= 1.2;
+        scale = Math.min(3, scale);
+        redraw();
+    });
+    
+    document.getElementById('zoomOutBtn')?.addEventListener('click', () => {
+        scale *= 0.8;
+        scale = Math.max(0.5, scale);
+        redraw();
+    });
+    
+    document.getElementById('fitBtn')?.addEventListener('click', resetView);
+    document.getElementById('resetViewBtn')?.addEventListener('click', resetView);
+    
+    document.getElementById('fullscreenBtn')?.addEventListener('click', toggleFullscreen);
+}
+
+// Reset View
+function resetView() {
+    scale = 1;
+    offsetX = 0;
+    offsetY = 0;
+    redraw();
+}
+
+// Toggle Fullscreen
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+    } else {
+        document.exitFullscreen();
+    }
 }
 
 // Load data from JSON file
@@ -156,35 +202,65 @@ function drawMindMap(links) {
     ctx.translate(offsetX, offsetY);
     ctx.scale(scale, scale);
     
-    // Draw links first
+    // Draw links first with curves
     links.forEach(link => {
         ctx.beginPath();
+        
+        // Calculate control point for curved line
+        const midX = (link.source.x + link.target.x) / 2;
+        const midY = (link.source.y + link.target.y) / 2;
+        const dx = link.target.x - link.source.x;
+        const dy = link.target.y - link.source.y;
+        const controlX = midX - dy * 0.1;
+        const controlY = midY + dx * 0.1;
+        
         ctx.moveTo(link.source.x, link.source.y);
-        ctx.lineTo(link.target.x, link.target.y);
-        ctx.strokeStyle = link.type === 'category-link' ? 'rgba(255, 255, 255, 0.8)' : 'rgba(255, 255, 255, 0.6)';
-        ctx.lineWidth = link.type === 'category-link' ? 3 : 2;
+        ctx.quadraticCurveTo(controlX, controlY, link.target.x, link.target.y);
+        
+        ctx.strokeStyle = link.type === 'category-link' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.7)';
+        ctx.lineWidth = link.type === 'category-link' ? 4 : 3;
+        ctx.lineCap = 'round';
         ctx.stroke();
     });
     
     // Draw nodes
     nodes.forEach(node => {
+        // Draw glow effect
+        ctx.save();
+        ctx.shadowColor = node.type === 'center' ? 'rgba(102, 126, 234, 0.6)' : 
+                         node.type === 'category' ? 'rgba(118, 75, 162, 0.6)' : 
+                         'rgba(240, 147, 251, 0.6)';
+        ctx.shadowBlur = 15;
+        
         // Draw circle
         ctx.beginPath();
         ctx.arc(node.x, node.y, node.radius, 0, 2 * Math.PI);
         
-        // Set color based on type
+        // Set gradient based on type
+        const gradient = ctx.createRadialGradient(
+            node.x - node.radius * 0.3, node.y - node.radius * 0.3, 0,
+            node.x, node.y, node.radius
+        );
+        
         if (node.type === 'center') {
-            ctx.fillStyle = '#667eea';
+            gradient.addColorStop(0, '#7c95f7');
+            gradient.addColorStop(1, '#667eea');
         } else if (node.type === 'category') {
-            ctx.fillStyle = '#764ba2';
+            gradient.addColorStop(0, '#8a5cb8');
+            gradient.addColorStop(1, '#764ba2');
         } else {
-            ctx.fillStyle = '#f093fb';
+            gradient.addColorStop(0, '#f5a8ff');
+            gradient.addColorStop(1, '#f093fb');
         }
+        
+        ctx.fillStyle = gradient;
         ctx.fill();
+        
+        ctx.restore();
         
         // Draw border
         ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 4;
         ctx.stroke();
         
         // Draw text
@@ -373,6 +449,69 @@ function redraw() {
     }
 }
 
+// Touch Support Variables
+let lastTouchDistance = 0;
+let lastTouchX = 0;
+let lastTouchY = 0;
+
+// Handle Touch Start
+function handleTouchStart(event) {
+    event.preventDefault();
+    
+    if (event.touches.length === 1) {
+        isDragging = true;
+        lastMouseX = event.touches[0].clientX;
+        lastMouseY = event.touches[0].clientY;
+    } else if (event.touches.length === 2) {
+        // Pinch to zoom
+        const touch1 = event.touches[0];
+        const touch2 = event.touches[1];
+        lastTouchDistance = Math.hypot(
+            touch2.clientX - touch1.clientX,
+            touch2.clientY - touch1.clientY
+        );
+        lastTouchX = (touch1.clientX + touch2.clientX) / 2;
+        lastTouchY = (touch1.clientY + touch2.clientY) / 2;
+    }
+}
+
+// Handle Touch Move
+function handleTouchMove(event) {
+    event.preventDefault();
+    
+    if (event.touches.length === 1 && isDragging) {
+        const deltaX = event.touches[0].clientX - lastMouseX;
+        const deltaY = event.touches[0].clientY - lastMouseY;
+        offsetX += deltaX;
+        offsetY += deltaY;
+        lastMouseX = event.touches[0].clientX;
+        lastMouseY = event.touches[0].clientY;
+        redraw();
+    } else if (event.touches.length === 2) {
+        const touch1 = event.touches[0];
+        const touch2 = event.touches[1];
+        const distance = Math.hypot(
+            touch2.clientX - touch1.clientX,
+            touch2.clientY - touch1.clientY
+        );
+        
+        if (lastTouchDistance > 0) {
+            const delta = distance / lastTouchDistance;
+            scale *= delta;
+            scale = Math.max(0.5, Math.min(3, scale));
+        }
+        
+        lastTouchDistance = distance;
+        redraw();
+    }
+}
+
+// Handle Touch End
+function handleTouchEnd(event) {
+    isDragging = false;
+    lastTouchDistance = 0;
+}
+
 // Handle window resize
 let resizeTimeout;
 window.addEventListener('resize', () => {
@@ -382,9 +521,6 @@ window.addEventListener('resize', () => {
             const container = document.getElementById('mindmap-container');
             canvas.width = container.clientWidth;
             canvas.height = container.clientHeight;
-            scale = 1;
-            offsetX = 0;
-            offsetY = 0;
             createMindMap(data);
         }
     }, 250);
