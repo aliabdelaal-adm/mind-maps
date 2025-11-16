@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - الخرائط الذهنية</title>
+    <link rel="stylesheet" href="admin-styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="admin-header">
+            <h1>🎯 لوحة التحكم - الخرائط الذهنية</h1>
+            <p>إدارة احترافية وسهلة لجميع عناصر الخريطة الذهنية</p>
+            <div class="header-actions">
+                <a href="index.html" class="btn btn-secondary" target="_blank">📊 عرض الخريطة الذهنية</a>
+                <button id="importBtn" class="btn btn-info">📥 استيراد</button>
+                <button id="exportBtn" class="btn btn-success">📤 تصدير</button>
+            </div>
+        </header>
+
+        <div class="quick-stats">
+            <div class="stat-card">
+                <div class="stat-icon">📚</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="totalWorks">0</div>
+                    <div class="stat-label">إجمالي الأعمال</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📁</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="totalCategories">0</div>
+                    <div class="stat-label">الفئات</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🎨</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="totalTypes">0</div>
+                    <div class="stat-label">الأنواع</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="toolbar">
+                <button id="addNewBtn" class="btn btn-primary btn-large">
+                    ➕ إضافة عمل جديد
+                </button>
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="🔍 بحث في الأعمال...">
+                </div>
+                <select id="filterCategory" class="filter-select">
+                    <option value="">جميع الفئات</option>
+                </select>
+                <select id="filterType" class="filter-select">
+                    <option value="">جميع الأنواع</option>
+                </select>
+            </div>
+
+            <div id="worksList" class="works-list">
+                <!-- Works will be dynamically loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2 id="modalTitle">إضافة عمل جديد</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="workForm">
+                    <input type="hidden" id="workId">
+                    
+                    <div class="form-group">
+                        <label for="workTitle">عنوان العمل *</label>
+                        <input type="text" id="workTitle" required placeholder="أدخل عنوان العمل">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="workType">نوع العمل *</label>
+                            <input type="text" id="workType" required placeholder="مثال: مبادرة، تقرير، دراسة" list="typesList">
+                            <datalist id="typesList">
+                                <option value="مبادرة">
+                                <option value="تقرير">
+                                <option value="دراسة">
+                                <option value="بحث">
+                            </datalist>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="workCategory">الفئة *</label>
+                            <input type="text" id="workCategory" required placeholder="مثال: التكنولوجيا، التقارير" list="categoriesList">
+                            <datalist id="categoriesList">
+                                <option value="التكنولوجيا">
+                                <option value="التقارير">
+                                <option value="البحوث">
+                            </datalist>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="workDescription">الوصف</label>
+                        <textarea id="workDescription" rows="3" placeholder="أدخل وصفاً مختصراً للعمل"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>روابط التحميل</label>
+                        <div class="links-container">
+                            <div class="link-input-group">
+                                <span class="link-label">📄 PDF:</span>
+                                <input type="url" id="pdfLink" placeholder="https://example.com/file.pdf">
+                            </div>
+                            <div class="link-input-group">
+                                <span class="link-label">📝 Word:</span>
+                                <input type="url" id="wordLink" placeholder="https://example.com/file.docx">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">💾 حفظ</button>
+                        <button type="button" class="btn btn-secondary" id="cancelBtn">❌ إلغاء</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Modal -->
+    <div id="importModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>استيراد البيانات</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="import-zone">
+                    <p>📁 قم بلصق محتوى ملف JSON أو اسحب ملف JSON هنا</p>
+                    <textarea id="importData" rows="10" placeholder='{"works": [...]}'></textarea>
+                    <input type="file" id="importFile" accept=".json" style="display: none;">
+                    <div class="form-actions">
+                        <button id="selectFileBtn" class="btn btn-secondary">اختيار ملف</button>
+                        <button id="importDataBtn" class="btn btn-primary">استيراد</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2>تأكيد الحذف</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p class="warning-message">⚠️ هل أنت متأكد من حذف هذا العمل؟</p>
+                <p id="deleteWorkName" class="delete-work-name"></p>
+                <div class="form-actions">
+                    <button id="confirmDeleteBtn" class="btn btn-danger">🗑️ نعم، احذف</button>
+                    <button class="btn btn-secondary close">إلغاء</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

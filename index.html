@@ -10,10 +10,23 @@
     <header>
         <h1>منصة الخرائط الذهنية التفاعلية</h1>
         <p>اضغط على أي عقدة لفتح الملفات المرتبطة بها</p>
+        <div class="header-controls">
+            <a href="admin.html" class="control-btn admin-btn" title="لوحة التحكم">⚙️ لوحة التحكم</a>
+            <button id="resetViewBtn" class="control-btn" title="إعادة تعيين العرض">🔄 إعادة تعيين</button>
+            <button id="fullscreenBtn" class="control-btn" title="ملء الشاشة">⛶ ملء الشاشة</button>
+        </div>
     </header>
     
     <div id="mindmap-container">
         <canvas id="mindmap"></canvas>
+        <div class="zoom-controls">
+            <button id="zoomInBtn" class="zoom-btn" title="تكبير">➕</button>
+            <button id="zoomOutBtn" class="zoom-btn" title="تصغير">➖</button>
+            <button id="fitBtn" class="zoom-btn" title="ملء الشاشة">⊡</button>
+        </div>
+        <div class="instructions">
+            💡 <strong>نصائح:</strong> اسحب الخريطة للتنقل • عجلة الماوس للتكبير والتصغير • انقر على العقد للتفاصيل
+        </div>
     </div>
 
     <div id="tooltip" class="tooltip"></div>
