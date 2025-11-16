@@ -1,0 +1,68 @@
+{
+  "works": [
+    {
+      "id": 1,
+      "title": "مبادرة التحول الرقمي",
+      "type": "مبادرة",
+      "category": "التكنولوجيا",
+      "downloadLinks": {
+        "pdf": "https://example.com/digital-transformation.pdf",
+        "word": "https://example.com/digital-transformation.docx"
+      },
+      "description": "مبادرة شاملة للتحول الرقمي في المؤسسة"
+    },
+    {
+      "id": 2,
+      "title": "تقرير الأداء السنوي",
+      "type": "تقرير",
+      "category": "التقارير",
+      "downloadLinks": {
+        "pdf": "https://example.com/annual-report.pdf",
+        "word": "https://example.com/annual-report.docx"
+      },
+      "description": "تقرير شامل عن أداء المؤسسة خلال العام"
+    },
+    {
+      "id": 3,
+      "title": "دراسة تحليل السوق",
+      "type": "دراسة",
+      "category": "البحوث",
+      "downloadLinks": {
+        "pdf": "https://example.com/market-analysis.pdf"
+      },
+      "description": "تحليل شامل لوضع السوق الحالي"
+    },
+    {
+      "id": 4,
+      "title": "مبادرة التطوير المستدام",
+      "type": "مبادرة",
+      "category": "التكنولوجيا",
+      "downloadLinks": {
+        "pdf": "https://example.com/sustainable-dev.pdf",
+        "word": "https://example.com/sustainable-dev.docx"
+      },
+      "description": "خطة للتطوير المستدام في مجال التقنية"
+    },
+    {
+      "id": 5,
+      "title": "تقرير الجودة",
+      "type": "تقرير",
+      "category": "التقارير",
+      "downloadLinks": {
+        "pdf": "https://example.com/quality-report.pdf"
+      },
+      "description": "تقييم معايير الجودة ونتائج التدقيق"
+    },
+    {
+      "id": 6,
+      "title": "بحث الابتكار",
+      "type": "بحث",
+      "category": "البحوث",
+      "downloadLinks": {
+        "pdf": "https://example.com/innovation-research.pdf",
+        "word": "https://example.com/innovation-research.docx"
+      },
+      "description": "دراسة حول الابتكار وتأثيره على المؤسسة"
+    }
+  ]
+}
