@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إنشاء سريع - الخرائط الذهنية الذكية</title>
+    <link rel="stylesheet" href="admin-styles.css">
+    <style>
+        .quick-create-container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+
+        .creation-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .method-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 2rem;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-align: center;
+        }
+
+        .method-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .method-card .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .method-card h3 {
+            margin: 0.5rem 0;
+            font-size: 1.3rem;
+        }
+
+        .method-card p {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .audio-recorder {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .audio-recorder.active {
+            display: block;
+        }
+
+        .recorder-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .record-btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .record-btn.start {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .record-btn.stop {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .recording-status {
+            text-align: center;
+            margin: 1rem 0;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .recording-timer {
+            font-size: 2rem;
+            color: #f5576c;
+            font-family: monospace;
+        }
+
+        .audio-preview {
+            margin: 2rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .audio-preview.show {
+            display: block;
+        }
+
+        .audio-preview audio {
+            width: 100%;
+            margin: 1rem 0;
+        }
+
+        .file-upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 2rem 0;
+            background: #f8f9fa;
+        }
+
+        .file-upload-area:hover {
+            background: #e9ecef;
+            border-color: #764ba2;
+        }
+
+        .file-upload-area.dragover {
+            background: #e7e9ff;
+            border-color: #667eea;
+        }
+
+        .quick-text-input {
+            margin: 2rem 0;
+        }
+
+        .quick-text-input textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 1rem;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            font-size: 1rem;
+            resize: vertical;
+        }
+
+        .processing-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .processing-overlay.active {
+            display: flex;
+        }
+
+        .processing-content {
+            background: white;
+            padding: 3rem;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            margin: 1rem auto;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 1rem;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .back-btn:hover {
+            color: #764ba2;
+        }
+
+        .feature-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 0.3rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="quick-create-container">
+        <a href="admin.html" class="back-btn">← العودة للوحة التحكم</a>
+        
+        <header style="text-align: center; margin-bottom: 2rem;">
+            <span class="feature-badge">✨ مدعوم بالذكاء الاصطناعي</span>
+            <h1>🚀 إنشاء خريطة ذهنية سريعة</h1>
+            <p style="color: #6c757d; font-size: 1.1rem;">
+                اختر طريقتك المفضلة لإنشاء خريطة ذهنية - نحن نهتم بالباقي!
+            </p>
+        </header>
+
+        <div class="creation-methods">
+            <div class="method-card" onclick="showAudioRecorder()">
+                <div class="icon">🎤</div>
+                <h3>تسجيل صوتي</h3>
+                <p>سجّل فكرتك صوتياً ودع الذكاء الاصطناعي يحولها إلى خريطة ذهنية كاملة</p>
+            </div>
+
+            <div class="method-card" onclick="showFileUpload()">
+                <div class="icon">📁</div>
+                <h3>رفع ملف صوتي</h3>
+                <p>ارفع ملف صوتي جاهز وسنقوم بمعالجته تلقائياً</p>
+            </div>
+
+            <div class="method-card" onclick="showTextInput()">
+                <div class="icon">✍️</div>
+                <h3>كتابة سريعة</h3>
+                <p>اكتب فكرتك بسرعة وسنقوم بإنشاء خريطة ذهنية شاملة</p>
+            </div>
+        </div>
+
+        <!-- Audio Recorder Section -->
+        <div id="audioRecorder" class="audio-recorder">
+            <h2 style="text-align: center; color: #667eea;">🎤 التسجيل الصوتي</h2>
+            <p style="text-align: center; color: #6c757d;">
+                اضغط على زر التسجيل وابدأ بشرح فكرتك. سنقوم بتحويلها إلى خريطة ذهنية كاملة!
+            </p>
+
+            <div class="recording-status" id="recordingStatus">
+                جاهز للتسجيل
+            </div>
+
+            <div class="recording-timer" id="recordingTimer" style="text-align: center; display: none;">
+                00:00
+            </div>
+
+            <div class="recorder-controls">
+                <button id="recordBtn" class="record-btn start" onclick="toggleRecording()">
+                    🎤
+                </button>
+            </div>
+
+            <div id="audioPreview" class="audio-preview">
+                <h3>معاينة التسجيل</h3>
+                <div id="audioPlayerContainer"></div>
+                <div class="form-actions" style="margin-top: 1rem;">
+                    <button class="btn btn-primary btn-large" onclick="processAudio()">
+                        ✨ إنشاء خريطة ذهنية بالذكاء الاصطناعي
+                    </button>
+                    <button class="btn btn-secondary" onclick="cancelAudio()">
+                        🔄 إعادة التسجيل
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- File Upload Section -->
+        <div id="fileUploadSection" class="audio-recorder">
+            <h2 style="text-align: center; color: #667eea;">📁 رفع ملف صوتي</h2>
+            
+            <div class="file-upload-area" id="fileUploadArea">
+                <div class="icon" style="font-size: 4rem; margin-bottom: 1rem;">📤</div>
+                <h3>اسحب الملف الصوتي هنا</h3>
+                <p>أو اضغط لاختيار ملف</p>
+                <p style="color: #6c757d; font-size: 0.9rem; margin-top: 1rem;">
+                    الصيغ المدعومة: MP3, WAV, M4A, OGG (حتى 10 ميجابايت)
+                </p>
+                <input type="file" id="audioFileInput" accept="audio/*" style="display: none;">
+            </div>
+
+            <div id="uploadedAudioPreview" class="audio-preview">
+                <h3>الملف الصوتي المرفوع</h3>
+                <div id="uploadedAudioInfo"></div>
+                <div id="uploadedAudioPlayer"></div>
+                <div class="form-actions" style="margin-top: 1rem;">
+                    <button class="btn btn-primary btn-large" onclick="processUploadedAudio()">
+                        ✨ إنشاء خريطة ذهنية بالذكاء الاصطناعي
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearUploadedAudio()">
+                        🔄 اختيار ملف آخر
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Text Input Section -->
+        <div id="textInputSection" class="audio-recorder">
+            <h2 style="text-align: center; color: #667eea;">✍️ الكتابة السريعة</h2>
+            <p style="text-align: center; color: #6c757d;">
+                اكتب فكرتك أو وصف المشروع باختصار وسنقوم بتوسيعها إلى خريطة ذهنية كاملة
+            </p>
+
+            <div class="quick-text-input">
+                <textarea 
+                    id="quickTextArea" 
+                    placeholder="مثال: أريد إنشاء منصة تعليمية تفاعلية تستهدف الطلاب من سن 10-15 سنة، تتضمن دروس فيديو، اختبارات تفاعلية، ونظام تتبع التقدم..."
+                ></textarea>
+            </div>
+
+            <div class="form-actions" style="text-align: center;">
+                <button class="btn btn-primary btn-large" onclick="processText()">
+                    ✨ إنشاء خريطة ذهنية بالذكاء الاصطناعي
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Processing Overlay -->
+    <div id="processingOverlay" class="processing-overlay">
+        <div class="processing-content">
+            <div class="spinner"></div>
+            <h2 id="processingTitle">جاري المعالجة...</h2>
+            <p id="processingMessage">يتم تحليل المحتوى وإنشاء الخريطة الذهنية</p>
+            <div id="processingSteps" style="margin-top: 1.5rem; text-align: right;">
+                <!-- Processing steps will be added dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <script src="audio-input.js"></script>
+    <script src="ai-service.js"></script>
+    <script src="quick-create.js"></script>
+</body>
+</html>
