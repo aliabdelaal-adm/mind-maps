@@ -31,12 +31,15 @@ body {
     color: #667eea;
     font-size: 2.5rem;
     margin-bottom: 10px;
+    line-height: 1.2;
+    font-weight: 700;
 }
 
 .admin-header p {
     color: #666;
     font-size: 1.1rem;
     margin-bottom: 20px;
+    line-height: 1.5;
 }
 
 .header-actions {
@@ -160,7 +163,11 @@ body {
     cursor: pointer;
     transition: all 0.3s;
     text-decoration: none;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    line-height: 1;
 }
 
 .btn-primary {
@@ -302,6 +309,8 @@ body {
     line-height: 1.6;
     margin-bottom: 15px;
     min-height: 40px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .work-links {
@@ -309,6 +318,7 @@ body {
     gap: 10px;
     margin-bottom: 15px;
     flex-wrap: wrap;
+    align-items: center;
 }
 
 .link-badge {
@@ -317,6 +327,9 @@ body {
     border-radius: 6px;
     font-size: 0.9rem;
     color: #666;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
 }
 
 .work-actions {
@@ -402,6 +415,9 @@ body {
     cursor: pointer;
     transition: color 0.3s;
     line-height: 1;
+    padding: 0;
+    background: none;
+    border: none;
 }
 
 .close:hover {
@@ -623,6 +639,10 @@ body {
     font-weight: bold;
     z-index: 2000;
     animation: slideInRight 0.3s;
+    backdrop-filter: blur(10px);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
 }
 
 @keyframes slideInRight {
