@@ -2,11 +2,20 @@
 let works = [];
 let editingWorkId = null;
 
+// GitHub Configuration
+let githubConfig = {
+    token: '',
+    owner: '',
+    repo: '',
+    branch: 'main'
+};
+
 // DOM Elements
 const worksList = document.getElementById('worksList');
 const editModal = document.getElementById('editModal');
 const importModal = document.getElementById('importModal');
 const deleteModal = document.getElementById('deleteModal');
+const githubConfigModal = document.getElementById('githubConfigModal');
 const workForm = document.getElementById('workForm');
 const searchInput = document.getElementById('searchInput');
 const filterCategory = document.getElementById('filterCategory');
@@ -19,6 +28,7 @@ const totalTypes = document.getElementById('totalTypes');
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+    loadGithubConfig();
     loadData();
     setupEventListeners();
 });
@@ -50,6 +60,17 @@ function setupEventListeners() {
     document.getElementById('addNewBtn').addEventListener('click', () => {
         openEditModal();
     });
+
+    // GitHub Configuration Button
+    document.getElementById('githubConfigBtn').addEventListener('click', () => {
+        openGithubConfigModal();
+    });
+
+    // Save to GitHub Button
+    document.getElementById('saveToGithubBtn').addEventListener('click', saveToGithub);
+
+    // GitHub Config Form
+    document.getElementById('githubConfigForm').addEventListener('submit', handleGithubConfigSubmit);
 
     // Export Button
     document.getElementById('exportBtn').addEventListener('click', exportData);
@@ -291,22 +312,25 @@ function handleFormSubmit(e) {
 
 // Save Data to File
 function saveData() {
-    const dataStr = JSON.stringify({ works }, null, 2);
-    
-    // Create download link
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'data.json';
-    link.click();
-    URL.revokeObjectURL(url);
-    
     updateStats();
     updateFilters();
     renderWorks();
     
-    showNotification('تم تحديث البيانات! قم بحفظ ملف data.json الجديد في المجلد.', 'info');
+    // Check if GitHub is configured
+    if (githubConfig.token && githubConfig.owner && githubConfig.repo) {
+        showNotification('✅ تم تحديث البيانات! استخدم زر "الحفظ مباشرة في GitHub" لحفظ التغييرات.', 'success');
+    } else {
+        // Fallback: download file
+        const dataStr = JSON.stringify({ works }, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'data.json';
+        link.click();
+        URL.revokeObjectURL(url);
+        showNotification('تم تنزيل ملف data.json! قم برفعه يدوياً إلى المستودع.', 'info');
+    }
 }
 
 // Export Data
@@ -393,6 +417,130 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// ===== GitHub Integration Functions =====
+
+// Load GitHub Configuration from LocalStorage
+function loadGithubConfig() {
+    const saved = localStorage.getItem('githubConfig');
+    if (saved) {
+        try {
+            githubConfig = JSON.parse(saved);
+            // Show the Save to GitHub button if config exists
+            if (githubConfig.token && githubConfig.owner && githubConfig.repo) {
+                document.getElementById('saveToGithubBtn').style.display = 'inline-block';
+            }
+        } catch (error) {
+            console.error('Error loading GitHub config:', error);
+        }
+    }
+}
+
+// Save GitHub Configuration to LocalStorage
+function saveGithubConfig() {
+    localStorage.setItem('githubConfig', JSON.stringify(githubConfig));
+}
+
+// Open GitHub Configuration Modal
+function openGithubConfigModal() {
+    document.getElementById('githubToken').value = githubConfig.token || '';
+    document.getElementById('githubOwner').value = githubConfig.owner || '';
+    document.getElementById('githubRepo').value = githubConfig.repo || '';
+    document.getElementById('githubBranch').value = githubConfig.branch || 'main';
+    githubConfigModal.style.display = 'block';
+}
+
+// Handle GitHub Configuration Form Submit
+function handleGithubConfigSubmit(e) {
+    e.preventDefault();
+    
+    githubConfig.token = document.getElementById('githubToken').value.trim();
+    githubConfig.owner = document.getElementById('githubOwner').value.trim();
+    githubConfig.repo = document.getElementById('githubRepo').value.trim();
+    githubConfig.branch = document.getElementById('githubBranch').value.trim();
+    
+    saveGithubConfig();
+    githubConfigModal.style.display = 'none';
+    
+    // Show the Save to GitHub button
+    document.getElementById('saveToGithubBtn').style.display = 'inline-block';
+    
+    showNotification('تم حفظ إعدادات GitHub بنجاح! ✅', 'success');
+}
+
+// Save to GitHub Function
+async function saveToGithub() {
+    if (!githubConfig.token || !githubConfig.owner || !githubConfig.repo) {
+        showNotification('يجب تكوين إعدادات GitHub أولاً!', 'error');
+        openGithubConfigModal();
+        return;
+    }
+    
+    const saveBtn = document.getElementById('saveToGithubBtn');
+    const originalText = saveBtn.innerHTML;
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '⏳ جاري الحفظ...';
+    
+    try {
+        // Get current file SHA
+        const fileUrl = `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/contents/data.json?ref=${githubConfig.branch}`;
+        
+        showNotification('جاري الاتصال بـ GitHub...', 'info');
+        
+        const getResponse = await fetch(fileUrl, {
+            headers: {
+                'Authorization': `token ${githubConfig.token}`,
+                'Accept': 'application/vnd.github.v3+json'
+            }
+        });
+        
+        if (!getResponse.ok) {
+            throw new Error(`فشل الحصول على ملف data.json: ${getResponse.status}`);
+        }
+        
+        const fileData = await getResponse.json();
+        const sha = fileData.sha;
+        
+        // Prepare new content
+        const dataStr = JSON.stringify({ works }, null, 2);
+        const contentBase64 = btoa(unescape(encodeURIComponent(dataStr)));
+        
+        // Update file on GitHub
+        showNotification('جاري رفع التغييرات...', 'info');
+        
+        const updateResponse = await fetch(fileUrl, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `token ${githubConfig.token}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: `تحديث data.json من لوحة التحكم - ${new Date().toLocaleString('ar-EG')}`,
+                content: contentBase64,
+                sha: sha,
+                branch: githubConfig.branch
+            })
+        });
+        
+        if (!updateResponse.ok) {
+            const errorData = await updateResponse.json();
+            throw new Error(errorData.message || `فشل رفع الملف: ${updateResponse.status}`);
+        }
+        
+        const result = await updateResponse.json();
+        
+        showNotification('✅ تم حفظ التغييرات في GitHub بنجاح!', 'success');
+        console.log('GitHub commit:', result.commit.html_url);
+        
+    } catch (error) {
+        console.error('Error saving to GitHub:', error);
+        showNotification(`❌ خطأ في الحفظ: ${error.message}`, 'error');
+    } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = originalText;
+    }
+}
 
 // Keyboard Shortcuts
 document.addEventListener('keydown', (e) => {

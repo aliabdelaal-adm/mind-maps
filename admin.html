@@ -13,6 +13,8 @@
             <p>إدارة احترافية وسهلة لجميع عناصر الخريطة الذهنية</p>
             <div class="header-actions">
                 <a href="index.html" class="btn btn-secondary" target="_blank">📊 عرض الخريطة الذهنية</a>
+                <button id="githubConfigBtn" class="btn btn-info">⚙️ إعدادات GitHub</button>
+                <button id="saveToGithubBtn" class="btn btn-primary" style="display: none;">💾 الحفظ مباشرة في GitHub</button>
                 <button id="importBtn" class="btn btn-info">📥 استيراد</button>
                 <button id="exportBtn" class="btn btn-success">📤 تصدير</button>
             </div>
@@ -166,6 +168,55 @@
                     <button id="confirmDeleteBtn" class="btn btn-danger">🗑️ نعم، احذف</button>
                     <button class="btn btn-secondary close">إلغاء</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GitHub Configuration Modal -->
+    <div id="githubConfigModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⚙️ إعدادات GitHub</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="github-info">
+                    <p>📝 لحفظ التغييرات مباشرة في GitHub، يجب تكوين الإعدادات التالية:</p>
+                    <ul>
+                        <li>🔑 Personal Access Token من GitHub</li>
+                        <li>👤 اسم المالك (Owner)</li>
+                        <li>📦 اسم المستودع (Repository)</li>
+                        <li>🌿 اسم الفرع (Branch)</li>
+                    </ul>
+                    <p class="info-note">💡 سيتم حفظ هذه الإعدادات محلياً في المتصفح</p>
+                </div>
+                <form id="githubConfigForm">
+                    <div class="form-group">
+                        <label for="githubToken">Personal Access Token *</label>
+                        <input type="password" id="githubToken" required placeholder="ghp_xxxxxxxxxxxx">
+                        <small>يمكنك إنشاء Token من: Settings → Developer settings → Personal access tokens → Tokens (classic)</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="githubOwner">اسم المالك *</label>
+                        <input type="text" id="githubOwner" required placeholder="username or organization">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="githubRepo">اسم المستودع *</label>
+                        <input type="text" id="githubRepo" required placeholder="repository-name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="githubBranch">اسم الفرع *</label>
+                        <input type="text" id="githubBranch" required placeholder="main" value="main">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">💾 حفظ الإعدادات</button>
+                        <button type="button" class="btn btn-secondary close">❌ إلغاء</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
