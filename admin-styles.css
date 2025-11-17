@@ -667,3 +667,68 @@ body {
 .notification.info {
     background: #17a2b8;
 }
+
+/* GitHub Configuration Styles */
+.github-info {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border-right: 4px solid #667eea;
+}
+
+.github-info p {
+    margin-bottom: 10px;
+    color: #333;
+    line-height: 1.6;
+}
+
+.github-info ul {
+    list-style: none;
+    margin: 15px 0;
+}
+
+.github-info ul li {
+    padding: 8px 0;
+    color: #555;
+    line-height: 1.5;
+}
+
+.info-note {
+    background: #e7f3ff;
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin-top: 15px;
+    color: #0066cc !important;
+    font-weight: 500;
+}
+
+.form-group small {
+    display: block;
+    margin-top: 5px;
+    color: #666;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+/* Save to GitHub Button Highlight */
+#saveToGithubBtn {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+    animation: pulse 2s infinite;
+}
+
+#saveToGithubBtn:hover {
+    background: linear-gradient(135deg, #218838 0%, #1aa179 100%);
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+}
+
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+    }
+    50% {
+        box-shadow: 0 4px 20px rgba(40, 167, 69, 0.5);
+    }
+}
