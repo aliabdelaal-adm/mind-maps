@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عارض الخريطة الذهنية المحسّن</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .analysis-panel {
+            position: fixed;
+            left: -400px;
+            top: 0;
+            width: 400px;
+            height: 100%;
+            background: white;
+            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.2);
+            transition: left 0.3s;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .analysis-panel.active {
+            left: 0;
+        }
+
+        .analysis-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .analysis-header h2 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.3rem;
+        }
+
+        .close-analysis {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            line-height: 1;
+        }
+
+        .analysis-content {
+            padding: 1.5rem;
+        }
+
+        .analysis-section {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .analysis-section h3 {
+            margin: 0 0 0.8rem 0;
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+
+        .analysis-section ul {
+            margin: 0;
+            padding-right: 1.5rem;
+        }
+
+        .analysis-section li {
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-left: 0.5rem;
+        }
+
+        .badge-high { background: #28a745; color: white; }
+        .badge-medium { background: #ffc107; color: #333; }
+        .badge-low { background: #6c757d; color: white; }
+
+        .ai-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 0.2rem 0.6rem;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+
+        .node-metadata {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .expand-node-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .expand-node-btn:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>عارض الخريطة الذهنية المحسّن</h1>
+        <p>اضغط على أي عقدة لعرض التحليل التفصيلي</p>
+        <div class="header-controls">
+            <a href="quick-create.html" class="control-btn" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border: none; color: white;">✨ إنشاء سريع</a>
+            <a href="admin.html" class="control-btn admin-btn">⚙️ لوحة التحكم</a>
+            <button id="resetViewBtn" class="control-btn">🔄 إعادة تعيين</button>
+            <button id="fullscreenBtn" class="control-btn">⛶ ملء الشاشة</button>
+        </div>
+    </header>
+    
+    <div id="mindmap-container">
+        <canvas id="mindmap"></canvas>
+        <div class="zoom-controls">
+            <button id="zoomInBtn" class="zoom-btn">➕</button>
+            <button id="zoomOutBtn" class="zoom-btn">➖</button>
+            <button id="fitBtn" class="zoom-btn">⊡</button>
+        </div>
+        <div class="instructions">
+            💡 <strong>نصائح:</strong> اسحب الخريطة للتنقل • عجلة الماوس للتكبير والتصغير • انقر على العقد للتحليل التفصيلي
+        </div>
+    </div>
+
+    <div id="tooltip" class="tooltip"></div>
+    
+    <!-- Enhanced Analysis Panel -->
+    <div id="analysisPanel" class="analysis-panel">
+        <div class="analysis-header">
+            <button class="close-analysis" onclick="closeAnalysisPanel()">✕</button>
+            <h2 id="analysisTitle">عنوان العقدة</h2>
+            <p id="analysisType" style="margin: 0; opacity: 0.9;"></p>
+        </div>
+        <div class="analysis-content" id="analysisContent">
+            <!-- Content will be loaded dynamically -->
+        </div>
+    </div>
+
+    <!-- Legacy Modal (kept for compatibility) -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modal-title"></h2>
+            <p id="modal-type"></p>
+            <p id="modal-description"></p>
+            <div id="modal-links"></div>
+        </div>
+    </div>
+
+    <script src="mindmap.js"></script>
+    <script src="ai-service.js"></script>
+    <script>
+        // Enhanced viewer with analysis
+        function closeAnalysisPanel() {
+            document.getElementById('analysisPanel').classList.remove('active');
+        }
+
+        // Override the click handler to show analysis
+        const originalHandleClick = handleCanvasClick;
+        handleCanvasClick = function(event) {
+            const rect = canvas.getBoundingClientRect();
+            const x = (event.clientX - rect.left - offsetX) / scale;
+            const y = (event.clientY - rect.top - offsetY) / scale;
+            
+            // Check which node was clicked
+            for (let i = nodes.length - 1; i >= 0; i--) {
+                const node = nodes[i];
+                const distance = Math.sqrt((x - node.x) ** 2 + (y - node.y) ** 2);
+                
+                if (distance <= node.radius) {
+                    if (node.type === 'work' && node.data) {
+                        showEnhancedAnalysis(node.data);
+                    }
+                    break;
+                }
+            }
+        };
+
+        async function showEnhancedAnalysis(work) {
+            const panel = document.getElementById('analysisPanel');
+            const title = document.getElementById('analysisTitle');
+            const type = document.getElementById('analysisType');
+            const content = document.getElementById('analysisContent');
+
+            title.textContent = work.title;
+            type.textContent = `${work.type} - ${work.category}`;
+
+            // Show loading
+            content.innerHTML = '<div style="text-align: center; padding: 2rem;"><div class="spinner"></div><p>جاري تحميل التحليل...</p></div>';
+            panel.classList.add('active');
+
+            // Get or generate analysis
+            let analysis = work.analysis;
+            if (!analysis) {
+                try {
+                    analysis = await aiService.analyzeNode(work);
+                } catch (error) {
+                    analysis = null;
+                }
+            }
+
+            // Display analysis
+            let html = '';
+
+            if (work.aiGenerated) {
+                html += `<div class="ai-badge">✨ مولّد بالذكاء الاصطناعي</div>`;
+            }
+
+            html += `
+                <div class="analysis-section">
+                    <h3>📋 الوصف</h3>
+                    <p>${work.description || 'لا يوجد وصف'}</p>
+                </div>
+            `;
+
+            if (analysis) {
+                html += `
+                    <div class="analysis-section">
+                        <h3>📊 التحليل الشامل</h3>
+                        <p>${analysis.summary}</p>
+                    </div>
+
+                    <div class="analysis-section">
+                        <h3>🎯 النقاط الرئيسية</h3>
+                        <ul>
+                            ${analysis.keyPoints.map(point => `<li>${point}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    <div class="analysis-section">
+                        <h3>💡 التوصيات</h3>
+                        <ul>
+                            ${analysis.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    <div class="analysis-section">
+                        <h3>🔗 مواضيع ذات صلة</h3>
+                        <ul>
+                            ${analysis.relatedTopics.map(topic => `<li>${topic}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    <div class="analysis-section">
+                        <h3>📈 التقييم</h3>
+                        <p><strong>الأهمية:</strong> <span class="badge badge-${analysis.importance === 'عالية' ? 'high' : analysis.importance === 'متوسطة' ? 'medium' : 'low'}">${analysis.importance}</span></p>
+                        <p><strong>الجهد المطلوب:</strong> <span class="badge badge-medium">${analysis.effort}</span></p>
+                        <p><strong>التأثير:</strong> <span class="badge badge-high">${analysis.impact}</span></p>
+                    </div>
+                `;
+            }
+
+            if (work.downloadLinks && (work.downloadLinks.pdf || work.downloadLinks.word)) {
+                html += `
+                    <div class="analysis-section">
+                        <h3>📥 روابط التحميل</h3>
+                        ${work.downloadLinks.pdf ? `<a href="${work.downloadLinks.pdf}" target="_blank" class="btn btn-primary" style="display: block; margin-bottom: 0.5rem;">تحميل PDF</a>` : ''}
+                        ${work.downloadLinks.word ? `<a href="${work.downloadLinks.word}" target="_blank" class="btn btn-secondary" style="display: block;">تحميل Word</a>` : ''}
+                    </div>
+                `;
+            }
+
+            html += `
+                <button class="expand-node-btn" onclick="expandNodeWithAI(${work.id})">
+                    ✨ توسيع هذه العقدة بالذكاء الاصطناعي
+                </button>
+            `;
+
+            html += `
+                <div class="node-metadata">
+                    <p><strong>معرف العقدة:</strong> #${work.id}</p>
+                    ${work.createdAt ? `<p><strong>تاريخ الإنشاء:</strong> ${new Date(work.createdAt).toLocaleDateString('ar-EG')}</p>` : ''}
+                </div>
+            `;
+
+            content.innerHTML = html;
+        }
+
+        async function expandNodeWithAI(nodeId) {
+            // Find the node
+            const node = nodes.find(n => n.data && n.data.id === nodeId);
+            if (!node) return;
+
+            const content = document.getElementById('analysisContent');
+            content.innerHTML = '<div style="text-align: center; padding: 2rem;"><div class="spinner"></div><p>جاري توسيع العقدة بالذكاء الاصطناعي...</p></div>';
+
+            try {
+                const subNodes = await aiService.expandNode(node.data);
+                
+                let html = `
+                    <div class="analysis-section">
+                        <h3>✨ الفروع المقترحة</h3>
+                        <p>تم إنشاء ${subNodes.length} فرع جديد:</p>
+                        <ul>
+                            ${subNodes.map(sub => `
+                                <li>
+                                    <strong>${sub.title}</strong><br>
+                                    <small style="color: #6c757d;">${sub.description}</small>
+                                </li>
+                            `).join('')}
+                        </ul>
+                        <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;" onclick="addSubNodesToMindMap(${nodeId}, ${JSON.stringify(subNodes).replace(/"/g, '&quot;')})">
+                            ➕ إضافة هذه الفروع للخريطة
+                        </button>
+                    </div>
+                `;
+
+                content.innerHTML = html;
+            } catch (error) {
+                content.innerHTML = `<div class="analysis-section"><p style="color: #dc3545;">حدث خطأ: ${error.message}</p></div>`;
+            }
+        }
+
+        function addSubNodesToMindMap(parentId, subNodes) {
+            alert('سيتم إضافة الفروع الجديدة إلى الخريطة الذهنية. في التطبيق الكامل، سيتم حفظها تلقائياً.');
+            closeAnalysisPanel();
+        }
+
+        // Add spinner style
+        const spinnerStyle = document.createElement('style');
+        spinnerStyle.textContent = `
+            .spinner {
+                width: 40px;
+                height: 40px;
+                margin: 1rem auto;
+                border: 4px solid #f3f3f3;
+                border-top: 4px solid #667eea;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+            }
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(spinnerStyle);
+    </script>
+</body>
+</html>
