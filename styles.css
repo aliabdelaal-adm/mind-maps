@@ -24,12 +24,15 @@ header h1 {
     color: #667eea;
     font-size: 2.5rem;
     margin-bottom: 10px;
+    line-height: 1.2;
+    font-weight: 700;
 }
 
 header p {
     color: #666;
     font-size: 1.1rem;
     margin-bottom: 15px;
+    line-height: 1.5;
 }
 
 .header-controls {
@@ -50,6 +53,11 @@ header p {
     transition: all 0.3s;
     text-decoration: none;
     font-size: 0.95rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    line-height: 1;
 }
 
 .control-btn:hover {
@@ -137,6 +145,8 @@ header p {
     z-index: 100;
     max-width: 90%;
     text-align: center;
+    line-height: 1.6;
+    backdrop-filter: blur(10px);
 }
 
 .instructions strong {
@@ -185,6 +195,7 @@ header p {
     color: #fff;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     animation: slideDown 0.3s ease;
+    position: relative;
 }
 
 @keyframes slideDown {
@@ -205,6 +216,10 @@ header p {
     font-weight: bold;
     cursor: pointer;
     transition: color 0.3s;
+    line-height: 1;
+    padding: 0;
+    background: none;
+    border: none;
 }
 
 .close:hover,
