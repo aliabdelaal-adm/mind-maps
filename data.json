@@ -2,207 +2,99 @@
   "works": [
     {
       "id": 1,
-      "title": "مبادرة التحول الرقمي",
-      "type": "مبادرة",
-      "category": "التكنولوجيا",
-      "downloadLinks": {
-        "pdf": "https://example.com/digital-transformation.pdf",
-        "word": "https://example.com/digital-transformation.docx"
-      },
-      "description": "مبادرة شاملة للتحول الرقمي في المؤسسة"
+      "title": "فريق واحد متكامل",
+      "type": "عنصر فريق",
+      "category": "فريق",
+      "downloadLinks": {},
+      "description": "رئيس + مصممين + إداري - فريق متكامل للتنفيذ والإشراف والمراجعة"
     },
     {
       "id": 2,
-      "title": "تقرير الأداء السنوي",
-      "type": "تقرير",
-      "category": "التقارير",
-      "downloadLinks": {
-        "pdf": "https://example.com/annual-report.pdf",
-        "word": "https://example.com/annual-report.docx"
-      },
-      "description": "تقرير شامل عن أداء المؤسسة خلال العام"
+      "title": "صلاحيات وقيادة",
+      "type": "عنصر فريق",
+      "category": "فريق",
+      "downloadLinks": {},
+      "description": "صلاحيات واضحة للمشاركة - خبرة قيادية - مبادرة وابتكار"
     },
     {
       "id": 3,
-      "title": "دراسة تحليل السوق",
-      "type": "دراسة",
-      "category": "البحوث",
-      "downloadLinks": {
-        "pdf": "https://example.com/market-analysis.pdf"
-      },
-      "description": "تحليل شامل لوضع السوق الحالي"
+      "title": "إدارة محترفة",
+      "type": "عنصر فريق",
+      "category": "فريق",
+      "downloadLinks": {},
+      "description": "إدارة متخصصة ومعينة - نقل خبرات - تنظيم العمل"
     },
     {
       "id": 4,
-      "title": "مبادرة التطوير المستدام",
-      "type": "مبادرة",
-      "category": "التكنولوجيا",
-      "downloadLinks": {
-        "pdf": "https://example.com/sustainable-dev.pdf",
-        "word": "https://example.com/sustainable-dev.docx"
-      },
-      "description": "خطة للتطوير المستدام في مجال التقنية"
+      "title": "خلية بحث وابتكار",
+      "type": "عنصر فريق",
+      "category": "فريق",
+      "downloadLinks": {},
+      "description": "فريق مخصص للبحث والابتكار - تطوير وتحسين مستمر"
     },
     {
       "id": 5,
-      "title": "تقرير الجودة",
-      "type": "تقرير",
-      "category": "التقارير",
-      "downloadLinks": {
-        "pdf": "https://example.com/quality-report.pdf"
-      },
-      "description": "تقييم معايير الجودة ونتائج التدقيق"
+      "title": "نطاق العمل المحدد",
+      "type": "نشاط ابتكار",
+      "category": "الابتكار",
+      "downloadLinks": {},
+      "description": "اختيار القدرات والمهارات اللازمة - تطوير وتقسيم للقدرات - التحديد والتخطيط"
     },
     {
       "id": 6,
-      "title": "بحث الابتكار",
-      "type": "بحث",
-      "category": "البحوث",
-      "downloadLinks": {
-        "pdf": "https://example.com/innovation-research.pdf",
-        "word": "https://example.com/innovation-research.docx"
-      },
-      "description": "دراسة حول الابتكار وتأثيره على المؤسسة"
+      "title": "التطوير والتحسين",
+      "type": "نشاط ابتكار",
+      "category": "الابتكار",
+      "downloadLinks": {},
+      "description": "برامج التطوير المستمر والترتيب"
     },
     {
       "id": 7,
-      "title": "الأهداف الرئيسية",
-      "type": "هدف",
-      "category": "التخطيط",
-      "description": "تحديد الأهداف الأساسية للمشروع",
-      "aiGenerated": true,
+      "title": "الأدوات والسيطرة",
+      "type": "نشاط ابتكار",
+      "category": "الابتكار",
       "downloadLinks": {},
-      "analysis": {
-        "summary": "تحليل شامل لـ \"الأهداف الرئيسية\"",
-        "keyPoints": [
-          "النقطة الرئيسية الأولى",
-          "النقطة الرئيسية الثانية",
-          "النقطة الرئيسية الثالثة"
-        ],
-        "recommendations": [
-          "توصية للتحسين الأول",
-          "توصية للتحسين الثاني"
-        ],
-        "relatedTopics": [
-          "موضوع ذو صلة 1",
-          "موضوع ذو صلة 2"
-        ],
-        "importance": "عالية",
-        "effort": "متوسط",
-        "impact": "كبير"
-      }
+      "description": "أدوات متكاملة وسيطرة على الإدارة - اختيار مناسب للأدوات"
     },
     {
       "id": 8,
-      "title": "خطوات التنفيذ",
-      "type": "خطة",
-      "category": "التنفيذ",
-      "description": "الخطوات العملية لتحقيق الأهداف",
-      "aiGenerated": true,
+      "title": "الخروج والابتكار",
+      "type": "نشاط ابتكار",
+      "category": "الابتكار",
       "downloadLinks": {},
-      "analysis": {
-        "summary": "تحليل شامل لـ \"خطوات التنفيذ\"",
-        "keyPoints": [
-          "النقطة الرئيسية الأولى",
-          "النقطة الرئيسية الثانية",
-          "النقطة الرئيسية الثالثة"
-        ],
-        "recommendations": [
-          "توصية للتحسين الأول",
-          "توصية للتحسين الثاني"
-        ],
-        "relatedTopics": [
-          "موضوع ذو صلة 1",
-          "موضوع ذو صلة 2"
-        ],
-        "importance": "عالية",
-        "effort": "متوسط",
-        "impact": "كبير"
-      }
+      "description": "التفكير خارج الصندوق - حلول مبتكرة ومرتبات واضحة"
     },
     {
       "id": 9,
-      "title": "الموارد المطلوبة",
-      "type": "مورد",
-      "category": "التخطيط",
-      "description": "تحديد الموارد اللازمة للتنفيذ",
-      "aiGenerated": true,
+      "title": "المساحة للتطوير",
+      "type": "نشاط ابتكار",
+      "category": "الابتكار",
       "downloadLinks": {},
-      "analysis": {
-        "summary": "تحليل شامل لـ \"الموارد المطلوبة\"",
-        "keyPoints": [
-          "النقطة الرئيسية الأولى",
-          "النقطة الرئيسية الثانية",
-          "النقطة الرئيسية الثالثة"
-        ],
-        "recommendations": [
-          "توصية للتحسين الأول",
-          "توصية للتحسين الثاني"
-        ],
-        "relatedTopics": [
-          "موضوع ذو صلة 1",
-          "موضوع ذو صلة 2"
-        ],
-        "importance": "عالية",
-        "effort": "متوسط",
-        "impact": "كبير"
-      }
+      "description": "مساحة للإبداع والتطوير - سهولة التنفيذ"
     },
     {
       "id": 10,
-      "title": "التحديات المتوقعة",
-      "type": "تحدي",
-      "category": "المخاطر",
-      "description": "تحديد المخاطر والتحديات المحتملة",
-      "aiGenerated": true,
+      "title": "شروط الابتكار",
+      "type": "متطلب",
+      "category": "الابتكار",
       "downloadLinks": {},
-      "analysis": {
-        "summary": "تحليل شامل لـ \"التحديات المتوقعة\"",
-        "keyPoints": [
-          "النقطة الرئيسية الأولى",
-          "النقطة الرئيسية الثانية",
-          "النقطة الرئيسية الثالثة"
-        ],
-        "recommendations": [
-          "توصية للتحسين الأول",
-          "توصية للتحسين الثاني"
-        ],
-        "relatedTopics": [
-          "موضوع ذو صلة 1",
-          "موضوع ذو صلة 2"
-        ],
-        "importance": "عالية",
-        "effort": "متوسط",
-        "impact": "كبير"
-      }
+      "description": "تقييم وقياس الابتكار - معايير واضحة"
     },
     {
       "id": 11,
-      "title": "خطة المتابعة",
-      "type": "متابعة",
-      "category": "التنفيذ",
-      "description": "آلية متابعة التقدم وقياس النجاح",
-      "aiGenerated": true,
+      "title": "الابتكار والمغامرة",
+      "type": "مبدأ",
+      "category": "الابتكار",
       "downloadLinks": {},
-      "analysis": {
-        "summary": "تحليل شامل لـ \"خطة المتابعة\"",
-        "keyPoints": [
-          "النقطة الرئيسية الأولى",
-          "النقطة الرئيسية الثانية",
-          "النقطة الرئيسية الثالثة"
-        ],
-        "recommendations": [
-          "توصية للتحسين الأول",
-          "توصية للتحسين الثاني"
-        ],
-        "relatedTopics": [
-          "موضوع ذو صلة 1",
-          "موضوع ذو صلة 2"
-        ],
-        "importance": "عالية",
-        "effort": "متوسط",
-        "impact": "كبير"
-      }
+      "description": "الخدمة والإنجاز - الواقعية والنتائج المقاسة - سهولة التنفيذ"
+    },
+    {
+      "id": 12,
+      "title": "مكان التنفيذ",
+      "type": "موقع",
+      "category": "مكان",
+      "downloadLinks": {},
+      "description": "المكان المناسب للتنفيذ مع التفاصيل المطلوبة"
     }
   ]
 }
