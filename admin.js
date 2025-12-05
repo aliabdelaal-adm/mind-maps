@@ -563,3 +563,133 @@ document.addEventListener('keydown', (e) => {
         });
     }
 });
+
+// ===== Freeplane Integration Functions =====
+
+// Setup Freeplane Event Listeners (called from setupEventListeners)
+function setupFreeplaneEventListeners() {
+    // Import Freeplane Button
+    const importFreeplaneBtn = document.getElementById('importFreeplaneBtn');
+    if (importFreeplaneBtn) {
+        importFreeplaneBtn.addEventListener('click', () => {
+            const importFreeplaneModal = document.getElementById('importFreeplaneModal');
+            if (importFreeplaneModal) {
+                importFreeplaneModal.style.display = 'block';
+            }
+        });
+    }
+
+    // Export Freeplane Button
+    const exportFreeplaneBtn = document.getElementById('exportFreeplaneBtn');
+    if (exportFreeplaneBtn) {
+        exportFreeplaneBtn.addEventListener('click', exportToFreeplane);
+    }
+
+    // Freeplane File Input
+    const importFreeplaneFile = document.getElementById('importFreeplaneFile');
+    if (importFreeplaneFile) {
+        importFreeplaneFile.addEventListener('change', handleFreeplaneFileSelect);
+    }
+
+    // Import Freeplane Data Button
+    const importFreeplaneDataBtn = document.getElementById('importFreeplaneDataBtn');
+    if (importFreeplaneDataBtn) {
+        importFreeplaneDataBtn.addEventListener('click', importFreeplaneData);
+    }
+}
+
+// Handle Freeplane File Selection
+function handleFreeplaneFileSelect(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const freeplanePreview = document.getElementById('freeplanePreview');
+        const freeplaneFileInfo = document.getElementById('freeplaneFileInfo');
+        
+        if (freeplanePreview && freeplaneFileInfo) {
+            freeplanePreview.style.display = 'block';
+            freeplaneFileInfo.innerHTML = `
+                <strong>اسم الملف:</strong> ${file.name}<br>
+                <strong>الحجم:</strong> ${(file.size / 1024).toFixed(2)} KB<br>
+                <strong>النوع:</strong> ${file.type || 'application/xml'}
+            `;
+        }
+    }
+}
+
+// Import Freeplane Data
+async function importFreeplaneData() {
+    const fileInput = document.getElementById('importFreeplaneFile');
+    if (!fileInput || !fileInput.files[0]) {
+        showNotification('الرجاء اختيار ملف Freeplane (.mm)!', 'error');
+        return;
+    }
+
+    const file = fileInput.files[0];
+    
+    try {
+        showNotification('جاري قراءة ملف Freeplane...', 'info');
+        
+        // Check if freeplaneService is available
+        if (typeof freeplaneService === 'undefined') {
+            throw new Error('خدمة Freeplane غير متوفرة');
+        }
+        
+        const importedData = await freeplaneService.importFreeplaneFile(file);
+        
+        if (importedData && importedData.works) {
+            works = importedData.works;
+            updateStats();
+            updateFilters();
+            renderWorks();
+            
+            const importFreeplaneModal = document.getElementById('importFreeplaneModal');
+            if (importFreeplaneModal) {
+                importFreeplaneModal.style.display = 'none';
+            }
+            
+            // Reset the file input
+            fileInput.value = '';
+            const freeplanePreview = document.getElementById('freeplanePreview');
+            if (freeplanePreview) {
+                freeplanePreview.style.display = 'none';
+            }
+            
+            showNotification(`✅ تم استيراد ${works.length} عنصر من ملف Freeplane بنجاح!`, 'success');
+            
+            // Auto-save imported data
+            saveData();
+        } else {
+            throw new Error('تنسيق الملف غير صحيح');
+        }
+        
+    } catch (error) {
+        console.error('Freeplane import error:', error);
+        showNotification(`❌ خطأ في استيراد ملف Freeplane: ${error.message}`, 'error');
+    }
+}
+
+// Export to Freeplane Format
+function exportToFreeplane() {
+    try {
+        // Check if freeplaneService is available
+        if (typeof freeplaneService === 'undefined') {
+            showNotification('خدمة Freeplane غير متوفرة!', 'error');
+            return;
+        }
+        
+        const filename = `mind-map-${new Date().toISOString().split('T')[0]}.mm`;
+        freeplaneService.downloadAsFreeplaneFormat({ works }, filename);
+        
+        showNotification('✅ تم تصدير الخريطة الذهنية بتنسيق Freeplane بنجاح!', 'success');
+        
+    } catch (error) {
+        console.error('Freeplane export error:', error);
+        showNotification(`❌ خطأ في التصدير: ${error.message}`, 'error');
+    }
+}
+
+// Initialize Freeplane features after DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Add Freeplane event listeners after a short delay to ensure DOM is ready
+    setTimeout(setupFreeplaneEventListeners, 100);
+});

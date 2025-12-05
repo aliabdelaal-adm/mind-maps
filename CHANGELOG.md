@@ -2,6 +2,66 @@
 
 All notable changes to the Mind Maps project will be documented in this file.
 
+## [4.0.0] - 2024-12-05
+
+### 🎉 Major Features Added - Freeplane Hybrid Integration
+
+#### Freeplane Compatibility 🗺️
+- **Import Freeplane Files** 📥
+  - Full support for Freeplane .mm XML format
+  - Automatic parsing of nodes, icons, and notes
+  - Preserves hierarchical structure
+  - Smart type and category inference
+
+- **Export to Freeplane** 📤
+  - Generate valid Freeplane .mm XML files
+  - Export all nodes with descriptions as notes
+  - Include icons based on work type
+  - Maintain color coding and styling
+
+- **Smart Features Inspired by Freeplane** 🧠
+  - Automatic smart connections between related nodes
+  - Priority system with 5 levels
+  - Rich icon library (priority, status, category, idea, warning, collaboration)
+  - Smart templates (goal, task, idea, risk, milestone, resource, decision)
+  - Intelligent layout suggestions
+
+#### New Files 🗺️
+- `freeplane-service.js` - Complete Freeplane service with import/export capabilities
+- `data-hybrid-freeplane.json` - Hybrid smart mind map data with Freeplane features
+- `sample-freeplane.mm` - Sample Freeplane file demonstrating the hybrid format
+
+#### UI Enhancements
+- "🗺️ الخريطة الهجينة" button in main view for loading hybrid data
+- "📥 استيراد Freeplane" button in admin panel
+- "📤 تصدير Freeplane" button in admin panel
+- Freeplane import modal with file preview
+- Gradient styling for Freeplane-related buttons
+
+#### Admin Panel Updates
+- New import modal for Freeplane files
+- Freeplane export functionality
+- Separated JSON and Freeplane import/export buttons
+
+### 🔧 Technical Improvements
+- FreeplaneService class with comprehensive API
+- XML parsing and generation for .mm format
+- Smart type inference from text and icons
+- Automatic connection discovery using keyword analysis
+- Template system for consistent node styling
+
+### 📊 Data Structure Enhancements
+- New `freeplaneEnhanced` boolean field
+- New `smartFeatures` object with:
+  - `priority` (string)
+  - `autoConnections` (array of node IDs)
+  - `icon` (emoji)
+  - `templateType` (string)
+  - `analysis` (detailed analysis object)
+- Metadata with Freeplane compatibility info
+
+---
+
 ## [3.0.0] - 2024-11-17
 
 ### 🎉 Major Features Added
