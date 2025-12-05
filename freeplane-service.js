@@ -61,7 +61,7 @@ class FreeplaneService {
             }
             
             const works = [];
-            let idCounter = 1;
+            const idCounter = { value: 1 };  // Use object for pass-by-reference
             
             this.parseNode(rootNode, works, null, idCounter);
             
@@ -81,10 +81,18 @@ class FreeplaneService {
 
     /**
      * Recursively parse Freeplane nodes
+     * @param {Element} node - XML node to parse
+     * @param {Array} works - Array to collect work items
+     * @param {string} parentCategory - Parent category for inheritance
+     * @param {Object} idCounter - Counter object for generating unique IDs
      */
-    parseNode(node, works, parentCategory, startId) {
+    parseNode(node, works, parentCategory, idCounter) {
         const text = node.getAttribute('TEXT') || node.querySelector('richcontent')?.textContent || 'عقدة';
-        const id = node.getAttribute('ID') || startId;
+        const existingId = node.getAttribute('ID');
+        
+        // Generate unique ID using counter
+        const workId = existingId ? parseInt(existingId.replace(/\D/g, '')) || idCounter.value : idCounter.value;
+        idCounter.value++;  // Increment counter for next node
         
         // Determine category from parent or position
         const category = parentCategory || this.inferCategory(text);
@@ -99,7 +107,7 @@ class FreeplaneService {
         
         // Create work item
         const workItem = {
-            id: parseInt(id) || works.length + 1,
+            id: workId,
             title: text.trim(),
             type: this.inferType(text, iconNames),
             category: category,
@@ -123,8 +131,8 @@ class FreeplaneService {
         
         // Process child nodes
         const childNodes = node.querySelectorAll(':scope > node');
-        childNodes.forEach((child, index) => {
-            this.parseNode(child, works, text, works.length + 1);
+        childNodes.forEach((child) => {
+            this.parseNode(child, works, text, idCounter);
         });
     }
 
@@ -267,13 +275,19 @@ class FreeplaneService {
     /**
      * Generate smart description based on title
      */
+    /**
+     * Generate smart description based on title
+     * Uses a deterministic approach based on title length
+     */
     generateSmartDescription(title) {
         const descriptions = [
             `تفاصيل وشرح حول: ${title}`,
             `عنصر مهم يتعلق بـ: ${title}`,
             `جزء أساسي من الخريطة الذهنية: ${title}`
         ];
-        return descriptions[Math.floor(Math.random() * descriptions.length)];
+        // Deterministic selection based on title length
+        const index = title.length % descriptions.length;
+        return descriptions[index];
     }
 
     /**
@@ -289,36 +303,66 @@ class FreeplaneService {
 
     /**
      * Generate smart connections between nodes
+     * Uses keyword indexing for better performance
      * @param {Array} works - Array of work items
      * @returns {Array} - Suggested connections
      */
     generateSmartConnections(works) {
+        // Configuration constants
+        const MIN_KEYWORD_LENGTH = 3;
+        const MIN_SHARED_KEYWORDS = 2;
+        
         const connections = [];
         const keywords = {};
+        const keywordIndex = new Map();  // Index keywords to work IDs for faster lookup
         
-        // Extract keywords from each work
+        // Extract keywords from each work and build index
         works.forEach(work => {
             const words = (work.title + ' ' + (work.description || '')).split(/\s+/);
-            keywords[work.id] = words.filter(w => w.length > 3);
+            const workKeywords = new Set(words.filter(w => w.length > MIN_KEYWORD_LENGTH));
+            keywords[work.id] = workKeywords;
+            
+            // Build inverted index: keyword -> Set of work IDs
+            workKeywords.forEach(keyword => {
+                if (!keywordIndex.has(keyword)) {
+                    keywordIndex.set(keyword, new Set());
+                }
+                keywordIndex.get(keyword).add(work.id);
+            });
         });
         
-        // Find related nodes based on shared keywords
+        // Find connections using indexed approach (more efficient)
+        const processedPairs = new Set();
+        
         works.forEach(work1 => {
-            works.forEach(work2 => {
-                if (work1.id !== work2.id) {
-                    const shared = keywords[work1.id].filter(k => 
-                        keywords[work2.id].some(k2 => k.includes(k2) || k2.includes(k))
-                    );
-                    
-                    if (shared.length >= 2) {
-                        connections.push({
-                            source: work1.id,
-                            target: work2.id,
-                            strength: shared.length,
-                            sharedKeywords: shared,
-                            type: 'semantic'
-                        });
+            const candidates = new Map();  // work.id -> Set of shared keywords
+            
+            // Find candidate works that share keywords
+            keywords[work1.id].forEach(keyword => {
+                const relatedWorks = keywordIndex.get(keyword) || new Set();
+                relatedWorks.forEach(work2Id => {
+                    if (work2Id !== work1.id) {
+                        if (!candidates.has(work2Id)) {
+                            candidates.set(work2Id, new Set());
+                        }
+                        candidates.get(work2Id).add(keyword);
                     }
+                });
+            });
+            
+            // Create connections for works with enough shared keywords
+            candidates.forEach((sharedKeywords, work2Id) => {
+                const pairKey = [work1.id, work2Id].sort().join('-');
+                
+                if (sharedKeywords.size >= MIN_SHARED_KEYWORDS && !processedPairs.has(pairKey)) {
+                    processedPairs.add(pairKey);
+                    connections.push({
+                        source: work1.id,
+                        target: work2Id,
+                        strength: sharedKeywords.size,
+                        sharedKeywords: Array.from(sharedKeywords),
+                        type: 'semantic'
+                    });
                 }
             });
         });
