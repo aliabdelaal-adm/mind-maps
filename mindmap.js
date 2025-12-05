@@ -72,6 +72,42 @@ function setupControls() {
     document.getElementById('resetViewBtn')?.addEventListener('click', resetView);
     
     document.getElementById('fullscreenBtn')?.addEventListener('click', toggleFullscreen);
+    
+    // Hybrid data loading button
+    document.getElementById('loadHybridBtn')?.addEventListener('click', loadHybridData);
+}
+
+// Load Hybrid Freeplane Data
+function loadHybridData() {
+    fetch('data-hybrid-freeplane.json')
+        .then(response => response.json())
+        .then(jsonData => {
+            data = jsonData;
+            createMindMap(data);
+            
+            // Show notification
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 15px 30px;
+                border-radius: 10px;
+                font-weight: bold;
+                z-index: 9999;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            `;
+            notification.textContent = '✅ تم تحميل الخريطة الذهنية الهجينة الذكية!';
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000);
+        })
+        .catch(error => {
+            console.error('Error loading hybrid data:', error);
+            alert('خطأ في تحميل البيانات الهجينة. الرجاء التحقق من ملف data-hybrid-freeplane.json');
+        });
 }
 
 // Reset View

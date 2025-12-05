@@ -16,8 +16,10 @@
                 <a href="index.html" class="btn btn-secondary" target="_blank">📊 عرض الخريطة الذهنية</a>
                 <button id="githubConfigBtn" class="btn btn-info">⚙️ إعدادات GitHub</button>
                 <button id="saveToGithubBtn" class="btn btn-primary" style="display: none;">💾 الحفظ مباشرة في GitHub</button>
-                <button id="importBtn" class="btn btn-info">📥 استيراد</button>
-                <button id="exportBtn" class="btn btn-success">📤 تصدير</button>
+                <button id="importBtn" class="btn btn-info">📥 استيراد JSON</button>
+                <button id="importFreeplaneBtn" class="btn btn-info" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">📥 استيراد Freeplane</button>
+                <button id="exportBtn" class="btn btn-success">📤 تصدير JSON</button>
+                <button id="exportFreeplaneBtn" class="btn btn-success" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">📤 تصدير Freeplane</button>
             </div>
         </header>
 
@@ -155,6 +157,30 @@
         </div>
     </div>
 
+    <!-- Freeplane Import Modal -->
+    <div id="importFreeplaneModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📥 استيراد من Freeplane</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="import-zone" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);">
+                    <p>🗺️ ارفع ملف Freeplane (.mm) لتحويله إلى خريطة ذهنية تفاعلية</p>
+                    <p style="font-size: 0.9rem; color: #666;">يدعم تنسيق XML القياسي من Freeplane مع الحفاظ على البنية والأيقونات والملاحظات</p>
+                    <input type="file" id="importFreeplaneFile" accept=".mm,.xml" style="display: block; margin: 1rem auto;">
+                    <div id="freeplanePreview" style="display: none; margin-top: 1rem; padding: 1rem; background: #f5f5f5; border-radius: 8px;">
+                        <h4>معاينة الملف</h4>
+                        <p id="freeplaneFileInfo"></p>
+                    </div>
+                    <div class="form-actions">
+                        <button id="importFreeplaneDataBtn" class="btn btn-primary" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">🚀 استيراد وتحويل</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Delete Confirmation Modal -->
     <div id="deleteModal" class="modal">
         <div class="modal-content modal-small">
@@ -222,6 +248,7 @@
         </div>
     </div>
 
+    <script src="freeplane-service.js"></script>
     <script src="admin.js"></script>
 </body>
 </html>
