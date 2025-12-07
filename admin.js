@@ -1,6 +1,9 @@
 // Admin Panel JavaScript
 let works = [];
 let editingWorkId = null;
+let selectedWorks = new Set();
+let autoSaveEnabled = true;
+let saveAndAddAnother = false;
 
 // GitHub Configuration
 let githubConfig = {
@@ -61,6 +64,20 @@ function setupEventListeners() {
         openEditModal();
     });
 
+    // Templates Button
+    document.getElementById('templatesBtn')?.addEventListener('click', () => {
+        document.getElementById('templatesModal').style.display = 'block';
+    });
+
+    // Preview Button
+    document.getElementById('previewBtn')?.addEventListener('click', showPreview);
+
+    // Bulk Operations Button
+    document.getElementById('bulkOperationsBtn')?.addEventListener('click', () => {
+        document.getElementById('bulkOperationsModal').style.display = 'block';
+        updateBulkSelectionInfo();
+    });
+
     // GitHub Configuration Button
     document.getElementById('githubConfigBtn').addEventListener('click', () => {
         openGithubConfigModal();
@@ -91,15 +108,48 @@ function setupEventListeners() {
     // Form Submit
     workForm.addEventListener('submit', handleFormSubmit);
 
+    // Save and Add Another Button
+    document.getElementById('saveAndAddBtn')?.addEventListener('click', () => {
+        saveAndAddAnother = true;
+        workForm.requestSubmit();
+    });
+
     // Cancel Button
     document.getElementById('cancelBtn').addEventListener('click', () => {
         editModal.style.display = 'none';
+        saveAndAddAnother = false;
     });
+
+    // Character Count for Description
+    document.getElementById('workDescription')?.addEventListener('input', (e) => {
+        const charCount = e.target.value.length;
+        document.getElementById('charCount').textContent = charCount;
+        
+        // Color feedback
+        const counter = document.getElementById('charCount');
+        if (charCount < 50) {
+            counter.style.color = '#ffc107';
+        } else if (charCount > 200) {
+            counter.style.color = '#dc3545';
+        } else {
+            counter.style.color = '#28a745';
+        }
+    });
+
+    // Smart Suggestions for Title
+    document.getElementById('workTitle')?.addEventListener('input', debounce((e) => {
+        if (document.getElementById('useSmartSuggestions')?.checked) {
+            suggestCategoryAndType(e.target.value);
+        }
+    }, 500));
 
     // Search and Filter
     searchInput.addEventListener('input', renderWorks);
     filterCategory.addEventListener('change', renderWorks);
     filterType.addEventListener('change', renderWorks);
+    
+    // Sort By
+    document.getElementById('sortBy')?.addEventListener('change', renderWorks);
 
     // Close Modals
     document.querySelectorAll('.close').forEach(closeBtn => {
@@ -175,6 +225,7 @@ function renderWorks() {
     const searchTerm = searchInput.value.toLowerCase();
     const selectedCategory = filterCategory.value;
     const selectedType = filterType.value;
+    const sortBy = document.getElementById('sortBy')?.value || 'recent';
 
     let filteredWorks = works.filter(work => {
         const matchesSearch = work.title.toLowerCase().includes(searchTerm) ||
@@ -183,6 +234,21 @@ function renderWorks() {
         const matchesType = !selectedType || work.type === selectedType;
         
         return matchesSearch && matchesCategory && matchesType;
+    });
+
+    // Sort works
+    filteredWorks.sort((a, b) => {
+        switch (sortBy) {
+            case 'title':
+                return a.title.localeCompare(b.title, 'ar');
+            case 'category':
+                return a.category.localeCompare(b.category, 'ar');
+            case 'type':
+                return a.type.localeCompare(b.type, 'ar');
+            case 'recent':
+            default:
+                return b.id - a.id; // Most recent first
+        }
     });
 
     if (filteredWorks.length === 0) {
@@ -197,13 +263,19 @@ function renderWorks() {
         return;
     }
 
-    worksList.innerHTML = filteredWorks.map(work => `
-        <div class="work-card" data-id="${work.id}">
+    worksList.innerHTML = filteredWorks.map(work => {
+        const isSelected = selectedWorks.has(work.id);
+        return `
+        <div class="work-card selectable ${isSelected ? 'selected' : ''}" 
+             data-id="${work.id}" 
+             onclick="toggleWorkSelection(${work.id}, event)">
             <div class="work-header">
                 <div class="work-title">${work.title}</div>
                 <div class="work-badges">
                     <span class="badge badge-type">${work.type}</span>
                     <span class="badge badge-category">${work.category}</span>
+                    ${work.aiGenerated ? '<span class="smart-badge">AI</span>' : ''}
+                    ${work.freeplaneEnhanced ? '<span class="smart-badge">🗺️</span>' : ''}
                 </div>
             </div>
             <div class="work-description">${work.description || 'لا يوجد وصف'}</div>
@@ -213,11 +285,12 @@ function renderWorks() {
                 ${!work.downloadLinks?.pdf && !work.downloadLinks?.word ? '<span class="link-badge">لا توجد روابط</span>' : ''}
             </div>
             <div class="work-actions">
-                <button class="btn btn-warning" onclick="editWork(${work.id})">✏️ تعديل</button>
-                <button class="btn btn-danger" onclick="deleteWork(${work.id})">🗑️ حذف</button>
+                <button class="btn btn-warning" onclick="event.stopPropagation(); editWork(${work.id})">✏️ تعديل</button>
+                <button class="btn btn-danger" onclick="event.stopPropagation(); deleteWork(${work.id})">🗑️ حذف</button>
             </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 // Open Edit Modal
@@ -307,7 +380,19 @@ function handleFormSubmit(e) {
     }
 
     saveData();
-    editModal.style.display = 'none';
+    
+    // Handle save and add another
+    if (saveAndAddAnother) {
+        workForm.reset();
+        editingWorkId = null;
+        document.getElementById('modalTitle').textContent = 'إضافة عمل جديد';
+        document.getElementById('workId').value = '';
+        document.getElementById('workTitle').focus();
+        saveAndAddAnother = false;
+        showNotification('يمكنك الآن إضافة عمل آخر', 'info');
+    } else {
+        editModal.style.display = 'none';
+    }
 }
 
 // Save Data to File
@@ -397,9 +482,20 @@ function showNotification(message, type = 'info') {
     // Remove existing notifications
     document.querySelectorAll('.notification').forEach(n => n.remove());
     
+    // Add icon to message if not already present
+    const icons = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+        info: 'ℹ️'
+    };
+    
+    const icon = icons[type] || icons.info;
+    const finalMessage = message.startsWith(icon) ? message : `${icon} ${message}`;
+    
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
-    notification.textContent = message;
+    notification.textContent = finalMessage;
     document.body.appendChild(notification);
     
     setTimeout(() => {
@@ -556,6 +652,18 @@ document.addEventListener('keydown', (e) => {
         exportData();
     }
     
+    // Ctrl/Cmd + P: Preview
+    if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+        e.preventDefault();
+        showPreview();
+    }
+    
+    // Ctrl/Cmd + A: Select All (when not in input)
+    if ((e.ctrlKey || e.metaKey) && e.key === 'a' && !['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
+        e.preventDefault();
+        bulkOperation('selectAll');
+    }
+    
     // Escape: Close Modals
     if (e.key === 'Escape') {
         document.querySelectorAll('.modal').forEach(modal => {
@@ -693,3 +801,530 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add Freeplane event listeners after a short delay to ensure DOM is ready
     setTimeout(setupFreeplaneEventListeners, 100);
 });
+
+// ===== Smart Features Functions =====
+
+/**
+ * Debounce function to limit function calls
+ */
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+/**
+ * Smart category and type suggestions based on title
+ */
+function suggestCategoryAndType(title) {
+    if (!title || title.length < 3) return;
+    
+    const lowerTitle = title.toLowerCase();
+    
+    // Category suggestions
+    const categoryPatterns = {
+        'التكنولوجيا': ['تطبيق', 'برنامج', 'نظام', 'تقنية', 'ذكاء', 'تكنولوجيا', 'ديجيتال'],
+        'التخطيط': ['خطة', 'استراتيجية', 'تخطيط', 'هدف', 'رؤية'],
+        'البحوث': ['بحث', 'دراسة', 'تحليل', 'استقصاء', 'مراجعة'],
+        'التقارير': ['تقرير', 'ملخص', 'نتائج', 'إنجازات'],
+        'الابتكار': ['ابتكار', 'إبداع', 'فكرة', 'تطوير', 'جديد'],
+        'التنفيذ': ['تنفيذ', 'إنجاز', 'عمل', 'مشروع', 'مهمة']
+    };
+    
+    // Type suggestions
+    const typePatterns = {
+        'مبادرة': ['مبادرة', 'برنامج', 'حملة'],
+        'تقرير': ['تقرير', 'ملخص', 'نتائج'],
+        'دراسة': ['دراسة', 'بحث', 'تحليل'],
+        'هدف': ['هدف', 'غاية', 'رؤية'],
+        'خطة': ['خطة', 'استراتيجية', 'منهج'],
+        'فكرة': ['فكرة', 'اقتراح', 'مفهوم']
+    };
+    
+    // Find matching category
+    let suggestedCategory = '';
+    for (const [category, patterns] of Object.entries(categoryPatterns)) {
+        if (patterns.some(pattern => lowerTitle.includes(pattern))) {
+            suggestedCategory = category;
+            break;
+        }
+    }
+    
+    // Find matching type
+    let suggestedType = '';
+    for (const [type, patterns] of Object.entries(typePatterns)) {
+        if (patterns.some(pattern => lowerTitle.includes(pattern))) {
+            suggestedType = type;
+            break;
+        }
+    }
+    
+    // Apply suggestions if found and fields are empty
+    if (suggestedCategory && !document.getElementById('workCategory').value) {
+        document.getElementById('workCategory').value = suggestedCategory;
+        document.getElementById('workCategory').classList.add('input-valid');
+    }
+    
+    if (suggestedType && !document.getElementById('workType').value) {
+        document.getElementById('workType').value = suggestedType;
+        document.getElementById('workType').classList.add('input-valid');
+    }
+}
+
+/**
+ * Validate link accessibility
+ */
+async function validateLink(linkId) {
+    const linkInput = document.getElementById(linkId);
+    const url = linkInput.value.trim();
+    
+    if (!url) {
+        showNotification('الرجاء إدخال رابط للتحقق منه', 'warning');
+        return;
+    }
+    
+    // Basic URL validation
+    try {
+        new URL(url);
+        linkInput.classList.add('input-valid');
+        linkInput.classList.remove('input-invalid');
+        showNotification('✓ الرابط صالح', 'success');
+    } catch (e) {
+        linkInput.classList.add('input-invalid');
+        linkInput.classList.remove('input-valid');
+        showNotification('✗ الرابط غير صالح', 'error');
+    }
+}
+
+/**
+ * Apply template to create multiple works
+ */
+function applyTemplate(templateType) {
+    const templates = {
+        project: [
+            { title: 'الرؤية والأهداف', type: 'هدف', category: 'التخطيط', description: 'تحديد الرؤية الشاملة والأهداف الاستراتيجية للمشروع' },
+            { title: 'فريق العمل', type: 'عنصر فريق', category: 'الفريق', description: 'تحديد أعضاء الفريق وتوزيع الأدوار' },
+            { title: 'الموارد المطلوبة', type: 'مورد', category: 'التخطيط', description: 'تحديد الموارد البشرية والمالية والتقنية' },
+            { title: 'الجدول الزمني', type: 'خطة', category: 'التنفيذ', description: 'وضع خطة زمنية للمراحل والمهام' },
+            { title: 'المخاطر المحتملة', type: 'تحدي', category: 'المخاطر', description: 'تحديد المخاطر وخطط التخفيف' },
+            { title: 'مؤشرات النجاح', type: 'متابعة', category: 'التنفيذ', description: 'تحديد معايير قياس النجاح' }
+        ],
+        research: [
+            { title: 'موضوع البحث', type: 'بحث', category: 'البحوث', description: 'تحديد موضوع البحث والمشكلة البحثية' },
+            { title: 'المراجع النظرية', type: 'دراسة', category: 'البحوث', description: 'مراجعة الدراسات السابقة والأدبيات' },
+            { title: 'المنهجية', type: 'خطة', category: 'البحوث', description: 'تحديد منهج البحث وأدوات جمع البيانات' },
+            { title: 'جمع البيانات', type: 'مهمة', category: 'التنفيذ', description: 'تنفيذ عملية جمع البيانات' },
+            { title: 'التحليل', type: 'تقرير', category: 'البحوث', description: 'تحليل البيانات واستخلاص النتائج' },
+            { title: 'النتائج والتوصيات', type: 'تقرير', category: 'البحوث', description: 'عرض النتائج والتوصيات' }
+        ],
+        planning: [
+            { title: 'التحليل الاستراتيجي', type: 'دراسة', category: 'التخطيط', description: 'تحليل البيئة الداخلية والخارجية' },
+            { title: 'الأهداف الاستراتيجية', type: 'هدف', category: 'التخطيط', description: 'تحديد الأهداف طويلة وقصيرة المدى' },
+            { title: 'الخطة التنفيذية', type: 'خطة', category: 'التنفيذ', description: 'وضع خطة تفصيلية للتنفيذ' },
+            { title: 'المبادرات الاستراتيجية', type: 'مبادرة', category: 'التنفيذ', description: 'تحديد المبادرات الرئيسية' },
+            { title: 'المتابعة والتقييم', type: 'متابعة', category: 'التنفيذ', description: 'نظام لمتابعة التقدم والتقييم' }
+        ],
+        brainstorm: [
+            { title: 'الأفكار الأولية', type: 'فكرة', category: 'الابتكار', description: 'جمع الأفكار الأولية من الفريق' },
+            { title: 'تصنيف الأفكار', type: 'خطة', category: 'الابتكار', description: 'تنظيم وتصنيف الأفكار حسب المواضيع' },
+            { title: 'تقييم الأفكار', type: 'دراسة', category: 'الابتكار', description: 'تقييم الأفكار حسب الجدوى والتأثير' },
+            { title: 'الأفكار المختارة', type: 'هدف', category: 'الابتكار', description: 'اختيار الأفكار الواعدة للتطوير' },
+            { title: 'خطة التطوير', type: 'خطة', category: 'التنفيذ', description: 'وضع خطة لتطوير الأفكار المختارة' }
+        ],
+        team: [
+            { title: 'بنية الفريق', type: 'عنصر فريق', category: 'الفريق', description: 'تحديد هيكل الفريق والأدوار' },
+            { title: 'المهام والمسؤوليات', type: 'خطة', category: 'الفريق', description: 'توزيع المهام والمسؤوليات' },
+            { title: 'التواصل والتنسيق', type: 'خطة', category: 'الفريق', description: 'آليات التواصل والاجتماعات' },
+            { title: 'التطوير والتدريب', type: 'مبادرة', category: 'الفريق', description: 'برامج تطوير مهارات الفريق' },
+            { title: 'تقييم الأداء', type: 'متابعة', category: 'الفريق', description: 'نظام لتقييم أداء أعضاء الفريق' }
+        ],
+        workflow: [
+            { title: 'تحديد العملية', type: 'خطة', category: 'التنفيذ', description: 'وصف تفصيلي للعملية' },
+            { title: 'الخطوات والإجراءات', type: 'خطة', category: 'التنفيذ', description: 'تحديد خطوات العملية بالترتيب' },
+            { title: 'المسؤوليات', type: 'عنصر فريق', category: 'التنفيذ', description: 'تحديد المسؤول عن كل خطوة' },
+            { title: 'نقاط التحقق', type: 'متابعة', category: 'التنفيذ', description: 'نقاط التحقق والمراجعة' },
+            { title: 'التحسين المستمر', type: 'مبدأ', category: 'الابتكار', description: 'آلية لتحسين العملية' }
+        ]
+    };
+    
+    const selectedTemplate = templates[templateType];
+    if (!selectedTemplate) {
+        showNotification('القالب غير متاح', 'error');
+        return;
+    }
+    
+    // Add works from template
+    let nextId = works.length > 0 ? Math.max(...works.map(w => w.id)) + 1 : 1;
+    
+    selectedTemplate.forEach(item => {
+        works.push({
+            id: nextId++,
+            ...item,
+            downloadLinks: {}
+        });
+    });
+    
+    // Update UI
+    updateStats();
+    updateFilters();
+    renderWorks();
+    
+    // Close modal
+    document.getElementById('templatesModal').style.display = 'none';
+    
+    showNotification(`✅ تم إضافة ${selectedTemplate.length} عنصر من القالب بنجاح!`, 'success');
+    
+    // Auto-save
+    if (autoSaveEnabled) {
+        setTimeout(() => saveData(), 1000);
+    }
+}
+
+/**
+ * Show preview of mind map
+ */
+function showPreview() {
+    const previewModal = document.getElementById('previewModal');
+    previewModal.style.display = 'block';
+    
+    // Simple preview rendering
+    const canvas = document.getElementById('previewCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw simple representation
+    ctx.fillStyle = '#667eea';
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('معاينة الخريطة الذهنية', canvas.width / 2, 30);
+    
+    ctx.font = '14px Arial';
+    ctx.fillStyle = '#666';
+    ctx.fillText(`إجمالي العناصر: ${works.length}`, canvas.width / 2, 60);
+    
+    // Draw categories
+    const categories = [...new Set(works.map(w => w.category))];
+    const categoryY = 100;
+    const categorySpacing = 80;
+    
+    categories.forEach((cat, index) => {
+        const x = 100 + (index % 3) * 250;
+        const y = categoryY + Math.floor(index / 3) * categorySpacing;
+        
+        // Draw category bubble
+        ctx.fillStyle = '#764ba2';
+        ctx.beginPath();
+        ctx.arc(x, y, 40, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 12px Arial';
+        ctx.fillText(cat, x, y + 5);
+        
+        // Draw work count
+        const count = works.filter(w => w.category === cat).length;
+        ctx.fillStyle = '#333';
+        ctx.font = '10px Arial';
+        ctx.fillText(`${count} عنصر`, x, y + 60);
+    });
+    
+    showNotification('تم إنشاء معاينة الخريطة الذهنية', 'info');
+}
+
+/**
+ * Bulk operations
+ */
+function bulkOperation(operation) {
+    switch (operation) {
+        case 'selectAll':
+            works.forEach(work => selectedWorks.add(work.id));
+            renderWorks();
+            updateBulkSelectionInfo();
+            showNotification('تم تحديد جميع العناصر', 'info');
+            break;
+            
+        case 'deselectAll':
+            selectedWorks.clear();
+            renderWorks();
+            updateBulkSelectionInfo();
+            showNotification('تم إلغاء التحديد', 'info');
+            break;
+            
+        case 'deleteSelected':
+            if (selectedWorks.size === 0) {
+                showNotification('لم يتم تحديد أي عناصر', 'warning');
+                return;
+            }
+            
+            if (confirm(`هل أنت متأكد من حذف ${selectedWorks.size} عنصر؟`)) {
+                works = works.filter(w => !selectedWorks.has(w.id));
+                selectedWorks.clear();
+                saveData();
+                showNotification('تم حذف العناصر المحددة بنجاح', 'success');
+            }
+            break;
+            
+        case 'exportSelected':
+            if (selectedWorks.size === 0) {
+                showNotification('لم يتم تحديد أي عناصر', 'warning');
+                return;
+            }
+            
+            const selectedData = { works: works.filter(w => selectedWorks.has(w.id)) };
+            const dataStr = JSON.stringify(selectedData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `selected-works-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            showNotification(`تم تصدير ${selectedWorks.size} عنصر`, 'success');
+            break;
+            
+        case 'changeCategory':
+            if (selectedWorks.size === 0) {
+                showNotification('لم يتم تحديد أي عناصر', 'warning');
+                return;
+            }
+            
+            const newCategory = prompt('أدخل الفئة الجديدة:');
+            if (newCategory && newCategory.trim()) {
+                works.forEach(work => {
+                    if (selectedWorks.has(work.id)) {
+                        work.category = newCategory.trim();
+                    }
+                });
+                saveData();
+                showNotification(`تم تغيير فئة ${selectedWorks.size} عنصر`, 'success');
+            }
+            break;
+            
+        case 'changeType':
+            if (selectedWorks.size === 0) {
+                showNotification('لم يتم تحديد أي عناصر', 'warning');
+                return;
+            }
+            
+            const newType = prompt('أدخل النوع الجديد:');
+            if (newType && newType.trim()) {
+                works.forEach(work => {
+                    if (selectedWorks.has(work.id)) {
+                        work.type = newType.trim();
+                    }
+                });
+                saveData();
+                showNotification(`تم تغيير نوع ${selectedWorks.size} عنصر`, 'success');
+            }
+            break;
+    }
+}
+
+/**
+ * Update bulk selection info
+ */
+function updateBulkSelectionInfo() {
+    const countEl = document.getElementById('selectedCount');
+    if (countEl) {
+        countEl.textContent = selectedWorks.size;
+    }
+}
+
+/**
+ * Toggle work selection
+ */
+window.toggleWorkSelection = function(workId, event) {
+    // Prevent triggering other actions
+    if (event) event.stopPropagation();
+    
+    if (selectedWorks.has(workId)) {
+        selectedWorks.delete(workId);
+    } else {
+        selectedWorks.add(workId);
+    }
+    
+    renderWorks();
+    updateBulkSelectionInfo();
+};
+
+// ===== Drag and Drop Functionality =====
+
+/**
+ * Setup drag and drop for file import
+ */
+function setupDragAndDrop() {
+    const dragDropArea = document.getElementById('dragDropArea');
+    const importFile = document.getElementById('importFile');
+    const importData = document.getElementById('importData');
+    
+    if (!dragDropArea) return;
+    
+    // Prevent default drag behaviors
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dragDropArea.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    // Highlight drop area when dragging over
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dragDropArea.addEventListener(eventName, () => {
+            dragDropArea.classList.add('dragover');
+        }, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        dragDropArea.addEventListener(eventName, () => {
+            dragDropArea.classList.remove('dragover');
+        }, false);
+    });
+    
+    // Handle dropped files
+    dragDropArea.addEventListener('drop', handleDrop, false);
+    
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        
+        if (files.length > 0) {
+            const file = files[0];
+            
+            // Check if it's a JSON file
+            if (file.type === 'application/json' || file.name.endsWith('.json')) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    importData.value = event.target.result;
+                    showNotification('تم تحميل الملف بنجاح! يمكنك الآن الضغط على "استيراد"', 'success');
+                };
+                reader.readAsText(file);
+            } else {
+                showNotification('الرجاء رفع ملف JSON فقط', 'error');
+            }
+        }
+    }
+}
+
+// Setup drag and drop after DOM loads
+document.addEventListener('DOMContentLoaded', () => {
+    setupDragAndDrop();
+    setupTemplateCardListeners();
+    setupBulkOperationListeners();
+    setupLinkValidationListeners();
+});
+
+/**
+ * Setup template card event listeners
+ */
+function setupTemplateCardListeners() {
+    document.querySelectorAll('.template-card').forEach(card => {
+        card.addEventListener('click', function() {
+            const template = this.dataset.template;
+            if (template) {
+                applyTemplate(template);
+            }
+        });
+    });
+}
+
+/**
+ * Setup bulk operation button listeners
+ */
+function setupBulkOperationListeners() {
+    document.querySelectorAll('.bulk-op-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const operation = this.dataset.operation;
+            if (operation) {
+                bulkOperation(operation);
+            }
+        });
+    });
+}
+
+/**
+ * Setup link validation button listeners
+ */
+function setupLinkValidationListeners() {
+    document.querySelectorAll('.validate-link-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const linkId = this.dataset.linkId;
+            if (linkId) {
+                validateLink(linkId);
+            }
+        });
+    });
+}
+
+// ===== Auto-save Functionality =====
+
+/**
+ * Show auto-save indicator
+ */
+function showAutoSaveIndicator(status = 'saved') {
+    const indicator = document.getElementById('autoSaveIndicator');
+    if (!indicator) return;
+    
+    indicator.className = 'auto-save-indicator show ' + status;
+    
+    if (status === 'saving') {
+        indicator.textContent = '💾 جاري الحفظ...';
+    } else if (status === 'saved') {
+        indicator.textContent = '✓ تم الحفظ التلقائي';
+    } else if (status === 'error') {
+        indicator.textContent = '✗ فشل الحفظ';
+    }
+    
+    // Hide after 3 seconds
+    setTimeout(() => {
+        indicator.classList.remove('show');
+    }, 3000);
+}
+
+/**
+ * Auto-save with debouncing
+ */
+let autoSaveTimeout;
+function triggerAutoSave() {
+    if (!autoSaveEnabled) return;
+    
+    clearTimeout(autoSaveTimeout);
+    autoSaveTimeout = setTimeout(() => {
+        showAutoSaveIndicator('saving');
+        
+        // Simulate save delay
+        setTimeout(() => {
+            showAutoSaveIndicator('saved');
+        }, 500);
+    }, 2000); // Wait 2 seconds after last change
+}
+
+// ===== Help Button =====
+
+/**
+ * Setup help button
+ */
+document.addEventListener('DOMContentLoaded', () => {
+    const helpBtn = document.getElementById('helpBtn');
+    const helpModal = document.getElementById('helpModal');
+    
+    if (helpBtn && helpModal) {
+        helpBtn.addEventListener('click', () => {
+            helpModal.style.display = 'block';
+        });
+    }
+});
+
+// ===== Enhanced Notifications =====
+
+// Note: Enhanced notifications with icons are already handled in the showNotification function
