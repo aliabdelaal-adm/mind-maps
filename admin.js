@@ -482,9 +482,20 @@ function showNotification(message, type = 'info') {
     // Remove existing notifications
     document.querySelectorAll('.notification').forEach(n => n.remove());
     
+    // Add icon to message if not already present
+    const icons = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+        info: 'ℹ️'
+    };
+    
+    const icon = icons[type] || icons.info;
+    const finalMessage = message.startsWith(icon) ? message : `${icon} ${message}`;
+    
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
-    notification.textContent = message;
+    notification.textContent = finalMessage;
     document.body.appendChild(notification);
     
     setTimeout(() => {
@@ -894,7 +905,7 @@ async function validateLink(linkId) {
 /**
  * Apply template to create multiple works
  */
-window.applyTemplate = function(templateType) {
+function applyTemplate(templateType) {
     const templates = {
         project: [
             { title: 'الرؤية والأهداف', type: 'هدف', category: 'التخطيط', description: 'تحديد الرؤية الشاملة والأهداف الاستراتيجية للمشروع' },
@@ -973,7 +984,7 @@ window.applyTemplate = function(templateType) {
     if (autoSaveEnabled) {
         setTimeout(() => saveData(), 1000);
     }
-};
+}
 
 /**
  * Show preview of mind map
@@ -1031,7 +1042,7 @@ function showPreview() {
 /**
  * Bulk operations
  */
-window.bulkOperation = function(operation) {
+function bulkOperation(operation) {
     switch (operation) {
         case 'selectAll':
             works.forEach(work => selectedWorks.add(work.id));
@@ -1115,7 +1126,7 @@ window.bulkOperation = function(operation) {
             }
             break;
     }
-};
+}
 
 /**
  * Update bulk selection info
@@ -1208,7 +1219,52 @@ function setupDragAndDrop() {
 // Setup drag and drop after DOM loads
 document.addEventListener('DOMContentLoaded', () => {
     setupDragAndDrop();
+    setupTemplateCardListeners();
+    setupBulkOperationListeners();
+    setupLinkValidationListeners();
 });
+
+/**
+ * Setup template card event listeners
+ */
+function setupTemplateCardListeners() {
+    document.querySelectorAll('.template-card').forEach(card => {
+        card.addEventListener('click', function() {
+            const template = this.dataset.template;
+            if (template) {
+                applyTemplate(template);
+            }
+        });
+    });
+}
+
+/**
+ * Setup bulk operation button listeners
+ */
+function setupBulkOperationListeners() {
+    document.querySelectorAll('.bulk-op-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const operation = this.dataset.operation;
+            if (operation) {
+                bulkOperation(operation);
+            }
+        });
+    });
+}
+
+/**
+ * Setup link validation button listeners
+ */
+function setupLinkValidationListeners() {
+    document.querySelectorAll('.validate-link-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const linkId = this.dataset.linkId;
+            if (linkId) {
+                validateLink(linkId);
+            }
+        });
+    });
+}
 
 // ===== Auto-save Functionality =====
 
@@ -1271,18 +1327,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ===== Enhanced Notifications =====
 
-/**
- * Enhanced notification with icons
- */
-const originalShowNotification = showNotification;
-showNotification = function(message, type = 'info') {
-    const icons = {
-        success: '✅',
-        error: '❌',
-        warning: '⚠️',
-        info: 'ℹ️'
-    };
-    
-    const icon = icons[type] || icons.info;
-    originalShowNotification(`${icon} ${message}`, type);
-};
+// Note: Enhanced notifications with icons are already handled in the showNotification function

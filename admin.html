@@ -141,12 +141,12 @@
                             <div class="link-input-group">
                                 <span class="link-label">📄 PDF:</span>
                                 <input type="url" id="pdfLink" placeholder="https://example.com/file.pdf">
-                                <button type="button" class="btn-mini" onclick="validateLink('pdfLink')" title="التحقق من الرابط">✓</button>
+                                <button type="button" class="btn-mini validate-link-btn" data-link-id="pdfLink" title="التحقق من الرابط">✓</button>
                             </div>
                             <div class="link-input-group">
                                 <span class="link-label">📝 Word:</span>
                                 <input type="url" id="wordLink" placeholder="https://example.com/file.docx">
-                                <button type="button" class="btn-mini" onclick="validateLink('wordLink')" title="التحقق من الرابط">✓</button>
+                                <button type="button" class="btn-mini validate-link-btn" data-link-id="wordLink" title="التحقق من الرابط">✓</button>
                             </div>
                         </div>
                         <small class="form-hint">🔗 يمكنك إضافة روابط لملفات PDF أو Word (اختياري)</small>
@@ -250,32 +250,32 @@
                     اختر قالباً جاهزاً للبدء السريع في إنشاء خريطة ذهنية منظمة
                 </p>
                 <div class="templates-grid">
-                    <div class="template-card" onclick="applyTemplate('project')">
+                    <div class="template-card" data-template="project">
                         <div class="template-icon">🎯</div>
                         <h3>مشروع جديد</h3>
                         <p>قالب شامل لإدارة المشاريع</p>
                     </div>
-                    <div class="template-card" onclick="applyTemplate('research')">
+                    <div class="template-card" data-template="research">
                         <div class="template-icon">📚</div>
                         <h3>بحث أكاديمي</h3>
                         <p>قالب لتنظيم البحوث والدراسات</p>
                     </div>
-                    <div class="template-card" onclick="applyTemplate('planning')">
+                    <div class="template-card" data-template="planning">
                         <div class="template-icon">📅</div>
                         <h3>تخطيط استراتيجي</h3>
                         <p>قالب للتخطيط والأهداف</p>
                     </div>
-                    <div class="template-card" onclick="applyTemplate('brainstorm')">
+                    <div class="template-card" data-template="brainstorm">
                         <div class="template-icon">💡</div>
                         <h3>عصف ذهني</h3>
                         <p>قالب لتوليد الأفكار</p>
                     </div>
-                    <div class="template-card" onclick="applyTemplate('team')">
+                    <div class="template-card" data-template="team">
                         <div class="template-icon">👥</div>
                         <h3>إدارة فريق</h3>
                         <p>قالب لتنظيم الفرق والمهام</p>
                     </div>
-                    <div class="template-card" onclick="applyTemplate('workflow')">
+                    <div class="template-card" data-template="workflow">
                         <div class="template-icon">🔄</div>
                         <h3>سير عمل</h3>
                         <p>قالب للعمليات والإجراءات</p>
@@ -316,27 +316,27 @@
                     اختر عملية لتطبيقها على جميع العناصر أو العناصر المحددة
                 </p>
                 <div class="bulk-operations-grid">
-                    <button class="bulk-op-btn" onclick="bulkOperation('selectAll')">
+                    <button class="bulk-op-btn" data-operation="selectAll">
                         <span class="op-icon">☑️</span>
                         <span>تحديد الكل</span>
                     </button>
-                    <button class="bulk-op-btn" onclick="bulkOperation('deselectAll')">
+                    <button class="bulk-op-btn" data-operation="deselectAll">
                         <span class="op-icon">⬜</span>
                         <span>إلغاء التحديد</span>
                     </button>
-                    <button class="bulk-op-btn" onclick="bulkOperation('deleteSelected')">
+                    <button class="bulk-op-btn" data-operation="deleteSelected">
                         <span class="op-icon">🗑️</span>
                         <span>حذف المحدد</span>
                     </button>
-                    <button class="bulk-op-btn" onclick="bulkOperation('exportSelected')">
+                    <button class="bulk-op-btn" data-operation="exportSelected">
                         <span class="op-icon">📤</span>
                         <span>تصدير المحدد</span>
                     </button>
-                    <button class="bulk-op-btn" onclick="bulkOperation('changeCategory')">
+                    <button class="bulk-op-btn" data-operation="changeCategory">
                         <span class="op-icon">📁</span>
                         <span>تغيير الفئة</span>
                     </button>
-                    <button class="bulk-op-btn" onclick="bulkOperation('changeType')">
+                    <button class="bulk-op-btn" data-operation="changeType">
                         <span class="op-icon">🎨</span>
                         <span>تغيير النوع</span>
                     </button>
