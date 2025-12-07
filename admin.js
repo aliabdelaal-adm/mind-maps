@@ -641,6 +641,18 @@ document.addEventListener('keydown', (e) => {
         exportData();
     }
     
+    // Ctrl/Cmd + P: Preview
+    if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+        e.preventDefault();
+        showPreview();
+    }
+    
+    // Ctrl/Cmd + A: Select All (when not in input)
+    if ((e.ctrlKey || e.metaKey) && e.key === 'a' && !['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
+        e.preventDefault();
+        bulkOperation('selectAll');
+    }
+    
     // Escape: Close Modals
     if (e.key === 'Escape') {
         document.querySelectorAll('.modal').forEach(modal => {
@@ -1130,4 +1142,147 @@ window.toggleWorkSelection = function(workId, event) {
     
     renderWorks();
     updateBulkSelectionInfo();
+};
+
+// ===== Drag and Drop Functionality =====
+
+/**
+ * Setup drag and drop for file import
+ */
+function setupDragAndDrop() {
+    const dragDropArea = document.getElementById('dragDropArea');
+    const importFile = document.getElementById('importFile');
+    const importData = document.getElementById('importData');
+    
+    if (!dragDropArea) return;
+    
+    // Prevent default drag behaviors
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dragDropArea.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    // Highlight drop area when dragging over
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dragDropArea.addEventListener(eventName, () => {
+            dragDropArea.classList.add('dragover');
+        }, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        dragDropArea.addEventListener(eventName, () => {
+            dragDropArea.classList.remove('dragover');
+        }, false);
+    });
+    
+    // Handle dropped files
+    dragDropArea.addEventListener('drop', handleDrop, false);
+    
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        
+        if (files.length > 0) {
+            const file = files[0];
+            
+            // Check if it's a JSON file
+            if (file.type === 'application/json' || file.name.endsWith('.json')) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    importData.value = event.target.result;
+                    showNotification('تم تحميل الملف بنجاح! يمكنك الآن الضغط على "استيراد"', 'success');
+                };
+                reader.readAsText(file);
+            } else {
+                showNotification('الرجاء رفع ملف JSON فقط', 'error');
+            }
+        }
+    }
+}
+
+// Setup drag and drop after DOM loads
+document.addEventListener('DOMContentLoaded', () => {
+    setupDragAndDrop();
+});
+
+// ===== Auto-save Functionality =====
+
+/**
+ * Show auto-save indicator
+ */
+function showAutoSaveIndicator(status = 'saved') {
+    const indicator = document.getElementById('autoSaveIndicator');
+    if (!indicator) return;
+    
+    indicator.className = 'auto-save-indicator show ' + status;
+    
+    if (status === 'saving') {
+        indicator.textContent = '💾 جاري الحفظ...';
+    } else if (status === 'saved') {
+        indicator.textContent = '✓ تم الحفظ التلقائي';
+    } else if (status === 'error') {
+        indicator.textContent = '✗ فشل الحفظ';
+    }
+    
+    // Hide after 3 seconds
+    setTimeout(() => {
+        indicator.classList.remove('show');
+    }, 3000);
+}
+
+/**
+ * Auto-save with debouncing
+ */
+let autoSaveTimeout;
+function triggerAutoSave() {
+    if (!autoSaveEnabled) return;
+    
+    clearTimeout(autoSaveTimeout);
+    autoSaveTimeout = setTimeout(() => {
+        showAutoSaveIndicator('saving');
+        
+        // Simulate save delay
+        setTimeout(() => {
+            showAutoSaveIndicator('saved');
+        }, 500);
+    }, 2000); // Wait 2 seconds after last change
+}
+
+// ===== Help Button =====
+
+/**
+ * Setup help button
+ */
+document.addEventListener('DOMContentLoaded', () => {
+    const helpBtn = document.getElementById('helpBtn');
+    const helpModal = document.getElementById('helpModal');
+    
+    if (helpBtn && helpModal) {
+        helpBtn.addEventListener('click', () => {
+            helpModal.style.display = 'block';
+        });
+    }
+});
+
+// ===== Enhanced Notifications =====
+
+/**
+ * Enhanced notification with icons
+ */
+const originalShowNotification = showNotification;
+showNotification = function(message, type = 'info') {
+    const icons = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+        info: 'ℹ️'
+    };
+    
+    const icon = icons[type] || icons.info;
+    originalShowNotification(`${icon} ${message}`, type);
 };

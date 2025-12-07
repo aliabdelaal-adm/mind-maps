@@ -178,12 +178,17 @@
                 <span class="close">&times;</span>
             </div>
             <div class="modal-body">
-                <div class="import-zone">
-                    <p>📁 قم بلصق محتوى ملف JSON أو اسحب ملف JSON هنا</p>
+                <div class="import-zone" id="importZone">
+                    <p>📁 اسحب ملف JSON هنا أو الصق المحتوى</p>
+                    <div class="drag-drop-area" id="dragDropArea">
+                        <div class="drag-icon">📥</div>
+                        <p>اسحب ملف JSON وأفلته هنا</p>
+                        <p style="font-size: 0.9rem; color: #999;">أو</p>
+                        <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">اختيار ملف</button>
+                    </div>
                     <textarea id="importData" rows="10" placeholder='{"works": [...]}'></textarea>
                     <input type="file" id="importFile" accept=".json" style="display: none;">
                     <div class="form-actions">
-                        <button id="selectFileBtn" class="btn btn-secondary">اختيار ملف</button>
                         <button id="importDataBtn" class="btn btn-primary">استيراد</button>
                     </div>
                 </div>
@@ -388,6 +393,66 @@
                         <button type="button" class="btn btn-secondary close">❌ إلغاء</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auto-save Indicator -->
+    <div id="autoSaveIndicator" class="auto-save-indicator">
+        💾 تم الحفظ التلقائي
+    </div>
+
+    <!-- Help Floating Button -->
+    <div class="help-floating-btn" id="helpBtn" title="مساعدة واختصارات لوحة المفاتيح">
+        ❓
+    </div>
+
+    <!-- Help Modal -->
+    <div id="helpModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>❓ المساعدة والاختصارات</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <h3>⌨️ اختصارات لوحة المفاتيح</h3>
+                <table class="shortcuts-table">
+                    <tr>
+                        <td><kbd>Ctrl</kbd> + <kbd>N</kbd></td>
+                        <td>إضافة عمل جديد</td>
+                    </tr>
+                    <tr>
+                        <td><kbd>Ctrl</kbd> + <kbd>S</kbd></td>
+                        <td>تصدير البيانات</td>
+                    </tr>
+                    <tr>
+                        <td><kbd>Ctrl</kbd> + <kbd>P</kbd></td>
+                        <td>معاينة الخريطة</td>
+                    </tr>
+                    <tr>
+                        <td><kbd>Esc</kbd></td>
+                        <td>إغلاق النوافذ</td>
+                    </tr>
+                    <tr>
+                        <td><kbd>Ctrl</kbd> + <kbd>A</kbd></td>
+                        <td>تحديد الكل</td>
+                    </tr>
+                </table>
+                
+                <h3>💡 نصائح سريعة</h3>
+                <ul class="tips-list">
+                    <li>استخدم القوالب الذكية للبدء السريع في إنشاء خرائط ذهنية منظمة</li>
+                    <li>الاقتراحات الذكية تساعدك على اختيار الفئة والنوع المناسب تلقائياً</li>
+                    <li>يمكنك تحديد عدة عناصر والقيام بعمليات جماعية عليها</li>
+                    <li>استخدم معاينة الخريطة قبل النشر للتأكد من المحتوى</li>
+                    <li>يتم الحفظ التلقائي بعد كل تغيير (إذا كان مفعلاً)</li>
+                </ul>
+                
+                <h3>🗺️ دعم Freeplane</h3>
+                <p>يدعم النظام الاستيراد والتصدير الكامل من وإلى Freeplane بتنسيق .mm</p>
+                
+                <h3>🤖 الذكاء الاصطناعي</h3>
+                <p>استخدم صفحة "الإنشاء السريع" لإنشاء خرائط ذهنية كاملة بالذكاء الاصطناعي</p>
             </div>
         </div>
     </div>
